@@ -661,18 +661,19 @@ export default function AuditDetail() {
         {/* Floating Chat Button - Prominent Style */}
         {!chatOpen && (
           <Button
-            className="fixed bottom-8 right-8 h-16 px-6 rounded-full shadow-2xl z-50 animate-pulse hover:animate-none gap-3 text-base font-semibold"
+            className="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 h-12 sm:h-16 px-4 sm:px-6 rounded-full shadow-2xl z-50 animate-pulse hover:animate-none gap-2 sm:gap-3 text-sm sm:text-base font-semibold"
             onClick={() => setChatOpen(true)}
             data-testid="button-toggle-chat"
           >
-            <MessageSquare className="w-6 h-6" />
-            <span>Chat dengan AI Coach</span>
+            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="hidden xs:inline">Chat dengan AI Coach</span>
+            <span className="xs:hidden">AI Coach</span>
           </Button>
         )}
 
         {/* Chat Panel Sidebar */}
         {chatOpen && (
-          <div className="fixed bottom-8 right-8 w-96 h-[600px] z-50 shadow-2xl rounded-lg overflow-hidden border-2 border-primary/20">
+          <div className="fixed inset-x-0 bottom-0 sm:inset-auto sm:bottom-8 sm:right-8 sm:w-96 h-[85vh] sm:h-[600px] z-50 shadow-2xl sm:rounded-lg overflow-hidden border-t-2 sm:border-2 border-primary/20">
             <div className="h-full flex flex-col bg-card">
               <div className="flex items-center justify-between p-3 border-b bg-primary/5">
                 <div className="flex items-center gap-2">

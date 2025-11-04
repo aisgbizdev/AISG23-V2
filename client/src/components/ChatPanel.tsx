@@ -198,7 +198,7 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-3 sm:space-y-4 pb-20 sm:pb-6">
+          <div className="space-y-3 sm:space-y-4 pb-24 sm:pb-6">
             {history.map((msg, idx) => (
               <div
                 key={idx}
