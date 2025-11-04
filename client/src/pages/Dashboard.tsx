@@ -99,13 +99,12 @@ export default function Dashboard() {
             {/* Logo */}
             <div className="flex justify-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-red-500 rounded-full blur-xl opacity-30 animate-pulse" />
-                <div className="relative bg-gradient-to-br from-red-500 to-red-600 p-4 sm:p-5 md:p-6 rounded-full shadow-2xl">
-                  <div className="text-3xl sm:text-4xl md:text-5xl font-black">
-                    <span className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent">Ai</span>
-                    <span className="text-white">SG</span>
-                  </div>
-                </div>
+                <div className="absolute inset-0 bg-red-500/30 rounded-2xl blur-2xl animate-pulse" />
+                <img 
+                  src="/logo-aisg.jpg" 
+                  alt="AiSG Logo" 
+                  className="relative w-48 sm:w-64 md:w-80 h-auto drop-shadow-2xl"
+                />
               </div>
             </div>
 
@@ -123,7 +122,7 @@ export default function Dashboard() {
             {/* Description */}
             <div className="max-w-3xl mx-auto">
               <p className="text-xs sm:text-sm md:text-base text-gray-200 leading-relaxed px-4">
-                <span className="text-red-400 font-semibold">🚀 **AiSG – Audit Intelligence System Growth**</span> A breakthrough AI system that helps you discover hidden potential & elevate performance.
+                A breakthrough AI system that helps you discover hidden potential & elevate performance.
               </p>
               <p className="text-xs sm:text-sm text-gray-400 mt-3">
                 **Powered by Newsmaker.id × AiSG Team × ChatGPT–OpenAI**
