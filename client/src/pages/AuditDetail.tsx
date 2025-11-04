@@ -658,18 +658,16 @@ export default function AuditDetail() {
           </TabsContent>
         </Tabs>
 
-        {/* Floating Chat Button - Prominent Style */}
-        {!chatOpen && (
-          <Button
-            className="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 h-12 sm:h-16 px-4 sm:px-6 rounded-full shadow-2xl z-50 animate-pulse hover:animate-none gap-2 sm:gap-3 text-sm sm:text-base font-semibold"
-            onClick={() => setChatOpen(true)}
-            data-testid="button-toggle-chat"
-          >
-            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="hidden xs:inline">Chat dengan AI Coach</span>
-            <span className="xs:hidden">AI Coach</span>
-          </Button>
-        )}
+        {/* Floating Chat Button - ALWAYS VISIBLE (Fixed Position) */}
+        <Button
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 sm:bottom-8 sm:left-auto sm:right-8 sm:translate-x-0 h-14 sm:h-16 px-5 sm:px-6 rounded-full shadow-2xl z-[100] animate-pulse hover:animate-none gap-2 sm:gap-3 text-xs sm:text-base font-semibold whitespace-nowrap"
+          onClick={() => setChatOpen(!chatOpen)}
+          data-testid="button-toggle-chat"
+        >
+          <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+          <span className="hidden sm:inline">Yuk... diskusikan hasil auditnya disini! 💬</span>
+          <span className="sm:hidden">Diskusi Audit 💬</span>
+        </Button>
 
         {/* Chat Panel Sidebar */}
         {chatOpen && (
