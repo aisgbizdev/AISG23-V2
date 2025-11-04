@@ -19,7 +19,7 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
   const [message, setMessage] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: history = [], isLoading } = useQuery<ChatMessage[]>({
     queryKey: ["/api/chat", auditId],
@@ -100,11 +100,12 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
     URL.revokeObjectURL(url);
   };
 
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [history]);
+  }, [history, sendMessageMutation.isPending]);
 
   const handleSend = () => {
     if (!message.trim()) return;
@@ -140,7 +141,7 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 p-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             <Loader2 className="w-6 h-6 animate-spin" />
@@ -177,6 +178,8 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
                 </div>
               </div>
             )}
+            {/* Invisible anchor for auto-scroll */}
+            <div ref={messagesEndRef} />
           </div>
         )}
       </ScrollArea>
