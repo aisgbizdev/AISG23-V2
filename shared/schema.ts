@@ -11,6 +11,8 @@ export const users = pgTable("users", {
   name: text("name").notNull().default("User"), // Display name
   email: text("email"), // Optional, for future features
   role: text("role").notNull().$type<"full_admin" | "admin" | "auditor" | "regular_user">().default("regular_user"),
+  securityQuestion: text("security_question"), // For password reset
+  securityAnswer: text("security_answer"), // Hashed answer for security
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -27,9 +29,26 @@ export const loginSchema = z.object({
   password: z.string().min(6, "Password minimal 6 karakter"),
 });
 
+export const registerSchema = z.object({
+  username: z.string().min(3, "Username minimal 3 karakter"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
+  name: z.string().min(2, "Nama minimal 2 karakter"),
+  email: z.string().email("Email tidak valid").optional().or(z.literal("")),
+  securityQuestion: z.string().min(5, "Pertanyaan keamanan minimal 5 karakter"),
+  securityAnswer: z.string().min(2, "Jawaban minimal 2 karakter"),
+});
+
+export const resetPasswordSchema = z.object({
+  username: z.string().min(3, "Username minimal 3 karakter"),
+  securityAnswer: z.string().min(2, "Jawaban minimal 2 karakter"),
+  newPassword: z.string().min(6, "Password baru minimal 6 karakter"),
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type LoginCredentials = z.infer<typeof loginSchema>;
+export type RegisterData = z.infer<typeof registerSchema>;
+export type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
 
 // Branches table
 export const branches = pgTable("branches", {
