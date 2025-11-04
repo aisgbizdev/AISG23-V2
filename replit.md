@@ -10,12 +10,15 @@ AiSG (Audit Intelligence System Growth) is a corporate enterprise performance au
 - ✅ **Full Enterprise Authentication**: Username/password login with bcrypt hashing (SALT_ROUNDS=10)
 - ✅ **Session Management**: express-session with HttpOnly cookies, 24-hour expiry, CSRF protection (sameSite: lax)
 - ✅ **Role-Based Access Control (RBAC)**: 4 roles with hierarchy (Full Admin → Admin → Auditor → Regular User)
+- ✅ **Self-Registration System**: Public registration page where regular users can create their own accounts
+- ✅ **Security Question-Based Password Reset**: 3-step password recovery flow (username → verify security question → reset password)
+- ✅ **Password Visibility Toggle**: Eye icon on all password fields (Login, Register, Forgot Password) for better UX and typo prevention
 - ✅ **Protected API Endpoints**: All `/api/*` routes require authentication with ownership checks
 - ✅ **Protected Frontend Routes**: Auto-redirect to `/login` for unauthenticated users
 - ✅ **Admin Dashboard**: Full Admin can create/delete users, manage roles, view all users
 - ✅ **Ownership-Based Data Access**: Users see only their own audits, admins see all
-- ✅ **First Superadmin Account**: Username `superadmin`, password `vito1007`, role `full_admin`
-- ✅ **Modern Gen-Z Login Page**: Gradient design (blue→purple→pink), glassmorphism effects, sparkles icon
+- ✅ **Superadmin Account**: Username `superadmin`, password `vito1007`, role `full_admin`
+- ✅ **Modern Gen-Z Auth Pages**: Gradient design (blue→purple→pink), glassmorphism effects, sparkles icon
 - ✅ **Auth Context**: Global state management with React Context, auto session persistence
 - ✅ **User Info Display**: Header shows current user name, role badge, logout button
 - ✅ **Navigation**: Home + Admin links (Admin only visible to full_admin)
