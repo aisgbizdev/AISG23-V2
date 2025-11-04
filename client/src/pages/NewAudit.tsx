@@ -45,7 +45,8 @@ const getVisibleTeamFields = (jabatan: string) => {
     "SBM",
     "EM",
     "SEM",
-    "VBM"
+    "VBM",
+    "BrM"
   ];
   
   // Map full jabatan names to hierarchy keys
@@ -56,7 +57,8 @@ const getVisibleTeamFields = (jabatan: string) => {
     "Senior Business Manager (SBM)": "SBM",
     "Executive Manager (EM)": "EM",
     "Senior Executive Manager (SEM)": "SEM",
-    "Vice Business Manager (VBM)": "VBM"
+    "Vice Business Manager (VBM)": "VBM",
+    "Branch Manager (BrM)": "BrM"
   };
   
   const userLevel = jabatanMap[jabatan];
@@ -109,6 +111,7 @@ export default function NewAudit() {
       jumlahEM: 0,
       jumlahSEM: 0,
       jumlahVBM: 0,
+      jumlahBrM: 0,
       pillarAnswers: Array.from({ length: 18 }, (_, i) => ({
         pillarId: i + 1,
         selfScore: 3
@@ -157,7 +160,7 @@ export default function NewAudit() {
     } else if (step === 2) {
       fieldsToValidate = ["marginTimQ1", "marginTimQ2", "marginTimQ3", "marginTimQ4", "naTimQ1", "naTimQ2", "naTimQ3", "naTimQ4", "marginPribadiQ1", "marginPribadiQ2", "marginPribadiQ3", "marginPribadiQ4", "nasabahPribadiQ1", "nasabahPribadiQ2", "nasabahPribadiQ3", "nasabahPribadiQ4"];
     } else if (step === 3) {
-      fieldsToValidate = ["jumlahBC", "jumlahSBC", "jumlahBsM", "jumlahSBM", "jumlahEM", "jumlahSEM", "jumlahVBM"];
+      fieldsToValidate = ["jumlahBC", "jumlahSBC", "jumlahBsM", "jumlahSBM", "jumlahEM", "jumlahSEM", "jumlahVBM", "jumlahBrM"];
     }
     
     const isValid = await form.trigger(fieldsToValidate);
@@ -239,6 +242,7 @@ export default function NewAudit() {
                             <SelectItem value="Executive Manager (EM)">Executive Manager (EM)</SelectItem>
                             <SelectItem value="Senior Executive Manager (SEM)">Senior Executive Manager (SEM)</SelectItem>
                             <SelectItem value="Vice Business Manager (VBM)">Vice Business Manager (VBM)</SelectItem>
+                            <SelectItem value="Branch Manager (BrM)">Branch Manager (BrM)</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -799,6 +803,27 @@ export default function NewAudit() {
                         )}
                       />
                     )}
+                    {visibleFields.includes("BrM") && (
+                      <FormField
+                        control={form.control}
+                        name="jumlahBrM"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>BrM</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                data-testid="input-brm" 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
                 </Card>
               );
@@ -894,9 +919,9 @@ export default function NewAudit() {
                   <div>
                     <p className="font-semibold">Total Tim:</p>
                     <p className="text-muted-foreground">
-                      {form.getValues("jumlahBC") + form.getValues("jumlahSBC") + form.getValues("jumlahBsM") + 
-                       form.getValues("jumlahSBM") + form.getValues("jumlahEM") + form.getValues("jumlahSEM") + 
-                       form.getValues("jumlahVBM")} orang
+                      {(form.getValues("jumlahBC") || 0) + (form.getValues("jumlahSBC") || 0) + (form.getValues("jumlahBsM") || 0) + 
+                       (form.getValues("jumlahSBM") || 0) + (form.getValues("jumlahEM") || 0) + (form.getValues("jumlahSEM") || 0) + 
+                       (form.getValues("jumlahVBM") || 0) + (form.getValues("jumlahBrM") || 0)} orang
                     </p>
                   </div>
                   <div>

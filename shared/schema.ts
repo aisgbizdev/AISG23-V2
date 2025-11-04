@@ -69,6 +69,7 @@ export const audits = pgTable("audits", {
   jumlahEM: integer("jumlah_em").notNull().default(0),
   jumlahSEM: integer("jumlah_sem").notNull().default(0),
   jumlahVBM: integer("jumlah_vbm").notNull().default(0),
+  jumlahBrM: integer("jumlah_brm").notNull().default(0),
   
   // 18 Pilar Scoring (Scale 1-5, Self vs Reality)
   pillarAnswers: jsonb("pillar_answers").notNull().$type<Array<{
