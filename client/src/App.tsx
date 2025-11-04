@@ -10,6 +10,8 @@ import Dashboard from "@/pages/Dashboard";
 import AuditDetail from "@/pages/AuditDetail";
 import NewAudit from "@/pages/NewAudit";
 import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import ForgotPassword from "@/pages/ForgotPassword";
 import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
 import { ClipboardList, MessageCircle, LogOut, UserCircle, Shield, Home } from "lucide-react";
@@ -40,7 +42,12 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 function Router() {
   return (
     <Switch>
+      {/* Public routes */}
       <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      
+      {/* Protected routes */}
       <Route path="/">
         <ProtectedRoute>
           <Dashboard />

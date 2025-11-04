@@ -56,7 +56,7 @@ export default function AdminDashboard() {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: typeof newUser) => {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/auth/create-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),

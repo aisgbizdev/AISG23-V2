@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,9 +90,16 @@ export default function Login() {
 
             {/* Password */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-300">
-                Password
-              </Label>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="password" className="text-gray-300">
+                  Password
+                </Label>
+                <Link href="/forgot-password">
+                  <a className="text-xs text-purple-400 hover:text-purple-300">
+                    Lupa Password?
+                  </a>
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <Input
@@ -130,12 +137,22 @@ export default function Login() {
                 "Login"
               )}
             </Button>
-          </form>
+            {/* Register & Forgot Password links */}
+            <div className="space-y-3 pt-2">
+              <div className="text-center text-sm">
+                <span className="text-gray-400">Belum punya akun? </span>
+                <Link href="/register">
+                  <a className="text-purple-400 hover:text-purple-300 font-medium">
+                    Daftar di sini
+                  </a>
+                </Link>
+              </div>
 
-          {/* Info */}
-          <div className="mt-6 text-center text-sm text-gray-500">
-            <p>🔐 Enterprise-grade security dengan role-based access control</p>
-          </div>
+              <div className="text-center text-xs text-gray-500">
+                🔐 Enterprise-grade security dengan role-based access control
+              </div>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>
