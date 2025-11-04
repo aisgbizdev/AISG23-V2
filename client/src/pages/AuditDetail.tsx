@@ -658,18 +658,20 @@ export default function AuditDetail() {
           </TabsContent>
         </Tabs>
 
-        {/* Floating Chat Button - ALWAYS VISIBLE (Fixed Position) */}
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 sm:bottom-8 sm:left-auto sm:right-8 sm:translate-x-0 z-[100]">
-          <Button
-            className="h-12 sm:h-16 px-4 sm:px-6 rounded-full shadow-2xl animate-pulse hover:animate-none gap-2 sm:gap-3 text-xs sm:text-base font-semibold whitespace-nowrap"
-            onClick={() => setChatOpen(!chatOpen)}
-            data-testid="button-toggle-chat"
-          >
-            <MessageSquare className="w-4 h-4 sm:w-6 sm:h-6 shrink-0" />
-            <span className="hidden sm:inline">Yuk... diskusikan hasil auditnya disini! 💬</span>
-            <span className="sm:hidden text-[11px]">Diskusi Hasil Audit 💬</span>
-          </Button>
-        </div>
+        {/* Floating Chat Button - Only show when chat is CLOSED */}
+        {!chatOpen && (
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 sm:bottom-8 sm:left-auto sm:right-8 sm:translate-x-0 z-[100]">
+            <Button
+              className="h-12 sm:h-16 px-4 sm:px-6 rounded-full shadow-2xl animate-pulse hover:animate-none gap-2 sm:gap-3 text-xs sm:text-base font-semibold whitespace-nowrap"
+              onClick={() => setChatOpen(true)}
+              data-testid="button-toggle-chat"
+            >
+              <MessageSquare className="w-4 h-4 sm:w-6 sm:h-6 shrink-0" />
+              <span className="hidden sm:inline">Yuk... diskusikan hasil auditnya disini! 💬</span>
+              <span className="sm:hidden text-[11px]">Diskusi Hasil Audit 💬</span>
+            </Button>
+          </div>
+        )}
 
         {/* Chat Panel Sidebar */}
         {chatOpen && (
