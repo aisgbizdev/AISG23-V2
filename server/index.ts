@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -7,6 +8,9 @@ const app = express();
 
 // Trust proxy (Replit uses proxy)
 app.set('trust proxy', 1);
+
+// PostgreSQL session store
+const PgSession = connectPgSimple(session);
 
 // Session configuration
 declare module "express-session" {
@@ -23,6 +27,11 @@ declare module 'http' {
 
 // Session middleware (before body parsers for security)
 app.use(session({
+  store: new PgSession({
+    conString: process.env.DATABASE_URL,
+    tableName: 'session', // PostgreSQL table to store sessions
+    createTableIfMissing: true, // Auto-create table on first run
+  }),
   secret: process.env.SESSION_SECRET || "aisg-secret-key-change-in-production",
   resave: false,
   saveUninitialized: false,
