@@ -39,8 +39,16 @@ export function registerAuthRoutes(app: Express) {
         });
       }
       
-      // Set session
+      // Set session and save explicitly
       req.session.userId = user.id;
+      
+      // Explicitly save session before responding
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
       
       return res.json({ 
         success: true,
@@ -108,6 +116,14 @@ export function registerAuthRoutes(app: Express) {
       
       // Auto-login after registration
       req.session.userId = user.id;
+      
+      // Explicitly save session before responding
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
       
       // Return without password and security answer
       const { password: _, securityAnswer: __, ...userWithoutSensitive } = user;
