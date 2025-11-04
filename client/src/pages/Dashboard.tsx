@@ -99,12 +99,12 @@ export default function Dashboard() {
             {/* Logo */}
             <div className="flex justify-center">
               <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48">
-                <div className="absolute inset-0 bg-red-500/40 rounded-full blur-2xl animate-pulse" />
-                <div className="relative w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-full p-4 sm:p-5 md:p-6 shadow-2xl flex items-center justify-center border border-amber-500/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/40 via-orange-500/30 to-amber-500/40 rounded-full blur-2xl animate-pulse" />
+                <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl ring-2 ring-amber-500/30">
                   <img 
                     src="/logo-aisg.jpg" 
                     alt="AiSG Logo" 
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               </div>

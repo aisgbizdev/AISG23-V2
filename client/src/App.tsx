@@ -30,11 +30,15 @@ function App() {
           <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4">
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="rounded-xl bg-gradient-to-br from-primary via-primary to-primary/80 p-2 shadow-lg">
-                  <ClipboardList className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
+                <div className="rounded-full overflow-hidden shadow-lg ring-2 ring-amber-500/30 w-10 h-10 sm:w-12 sm:h-12">
+                  <img 
+                    src="/logo-aisg.jpg" 
+                    alt="AiSG" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div>
-                  <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">AiSG</h1>
+                  <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">AiSG</h1>
                   <p className="text-[10px] sm:text-xs text-muted-foreground">Audit Intelligence SG</p>
                 </div>
               </div>
