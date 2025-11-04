@@ -32,14 +32,14 @@ export default function ZoneBadge({ type, label, size = "md", "data-testid": tes
   const displayLabel = label || config.label;
   
   const sizeClasses = {
-    sm: "text-xs px-2 py-0.5",
-    md: "text-sm px-3 py-1",
-    lg: "text-base px-4 py-1.5"
+    sm: "text-xs px-2 py-0.5 min-w-[100px]",
+    md: "text-sm px-3 py-1 min-w-[120px]",
+    lg: "text-base px-4 py-1.5 min-w-[140px]"
   };
 
   return (
     <Badge 
-      className={`${config.className} ${sizeClasses[size]} font-medium`}
+      className={`${config.className} ${sizeClasses[size]} font-medium inline-flex items-center justify-center`}
       data-testid={testId}
     >
       <span className="mr-1">{config.emoji}</span>
