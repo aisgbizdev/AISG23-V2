@@ -20,6 +20,7 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const { data: history = [], isLoading } = useQuery<ChatMessage[]>({
     queryKey: ["/api/chat", auditId],
@@ -102,8 +103,14 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    // Find the ScrollArea viewport element
+    const scrollViewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (scrollViewport) {
+      // Scroll to the bottom smoothly
+      scrollViewport.scrollTo({
+        top: scrollViewport.scrollHeight,
+        behavior: "smooth"
+      });
     }
   }, [history, sendMessageMutation.isPending]);
 
@@ -143,7 +150,7 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-3 sm:p-4">
+      <ScrollArea className="flex-1 p-3 sm:p-4" ref={scrollAreaRef}>
         {isLoading ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             <Loader2 className="w-6 h-6 animate-spin" />
@@ -155,7 +162,7 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
             <p className="text-xs">Mulai diskusi dengan AI Coach untuk insight lebih dalam tentang hasil audit Anda</p>
           </div>
         ) : (
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-3 sm:space-y-4 pb-4">
             {history.map((msg, idx) => (
               <div
                 key={idx}
@@ -181,7 +188,7 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
               </div>
             )}
             {/* Invisible anchor for auto-scroll */}
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} className="h-1" />
           </div>
         )}
       </ScrollArea>
