@@ -60,13 +60,16 @@ const getVisibleTeamFields = (jabatan: string) => {
   };
   
   const userLevel = jabatanMap[jabatan];
-  if (!userLevel) return hierarchy; // Show all if unknown
+  if (!userLevel) return []; // Show nothing if unknown
   
   const userIndex = hierarchy.indexOf(userLevel);
-  if (userIndex === -1) return hierarchy; // Show all if not found
+  if (userIndex === -1) return []; // Show nothing if not found
   
-  // Return from BC up to user's level (inclusive)
-  return hierarchy.slice(0, userIndex + 1);
+  // BC (index 0) doesn't have any subordinates, so return empty array
+  // For other positions, show only levels BELOW them (not including their own level)
+  // Example: SBC (index 1) shows only BC (index 0)
+  //          BSM (index 2) shows BC and SBC (indices 0-1)
+  return hierarchy.slice(0, userIndex);
 };
 
 export default function NewAudit() {
