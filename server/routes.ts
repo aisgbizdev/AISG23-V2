@@ -8,13 +8,26 @@ import gemini from "./gemini";
 import openai from "./openai";
 import { generateKnowledgeBasedResponse } from "./knowledge-base";
 import { generateAuditPDF } from "./pdf-generator";
+import { registerAuthRoutes } from "./auth-routes";
+import { requireAuth, requireFullAdmin } from "./middleware";
+import { canAccessAudit } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // POST /api/audit - Create new audit and return results
-  app.post("/api/audit", async (req, res) => {
+  // Register authentication routes first
+  registerAuthRoutes(app);
+  // POST /api/audit - Create new audit and return results (Protected)
+  app.post("/api/audit", requireAuth, async (req, res) => {
     try {
       const validated = insertAuditSchema.parse(req.body);
-      const audit = await storage.createAudit(validated);
+      
+      // Add ownership tracking
+      const auditWithOwnership = {
+        ...validated,
+        ownerId: req.user!.id, // Current user owns this audit
+        createdById: req.user!.id, // Current user created this audit
+      };
+      
+      const audit = await storage.createAudit(auditWithOwnership);
       
       // Return audit with all calculated results
       res.json({
@@ -39,24 +52,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // GET /api/audits - Get all audits
-  app.get("/api/audits", async (req, res) => {
+  // GET /api/audits - Get all audits (Protected with ownership filter)
+  app.get("/api/audits", requireAuth, async (req, res) => {
     try {
       const allAudits = await storage.getAllAudits();
-      res.json(allAudits);
+      
+      // Full Admin can see all audits, others see only their own
+      if (req.user!.role === "full_admin" || req.user!.role === "admin") {
+        res.json(allAudits);
+      } else {
+        // Filter to only user's own audits
+        const userAudits = allAudits.filter(audit => audit.ownerId === req.user!.id);
+        res.json(userAudits);
+      }
     } catch (error) {
       console.error("Error fetching audits:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  // GET /api/audit/:id - Get single audit by ID
-  app.get("/api/audit/:id", async (req, res) => {
+  // GET /api/audit/:id - Get single audit by ID (Protected with ownership check)
+  app.get("/api/audit/:id", requireAuth, async (req, res) => {
     try {
       const audit = await storage.getAudit(req.params.id);
       
       if (!audit) {
         res.status(404).json({ error: "Audit not found" });
+        return;
+      }
+      
+      // Check access permission
+      if (!canAccessAudit(req.user!.role, req.user!.id, audit.ownerId)) {
+        res.status(403).json({ 
+          error: "Forbidden", 
+          userMessage: "Anda tidak memiliki akses ke audit ini" 
+        });
         return;
       }
       
@@ -67,9 +97,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // POST /api/chat - Send chat message and get AI response
+  // POST /api/chat - Send chat message and get AI response (Protected)
   // 3-Source AI System: ChatGPT (OpenAI) → Gemini → Internal Knowledge Base
-  app.post("/api/chat", async (req, res) => {
+  app.post("/api/chat", requireAuth, async (req, res) => {
     try {
       const schema = z.object({
         auditId: z.string(),
@@ -81,6 +111,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const audit = await storage.getAudit(auditId);
       if (!audit) {
         res.status(404).json({ error: "Audit not found" });
+        return;
+      }
+      
+      // Check access permission
+      if (!canAccessAudit(req.user!.role, req.user!.id, audit.ownerId)) {
+        res.status(403).json({ 
+          error: "Forbidden", 
+          userMessage: "Anda tidak memiliki akses ke audit ini" 
+        });
         return;
       }
       
@@ -340,9 +379,24 @@ Remember: Kamu bukan AI assistant, kamu COACH BERPENGALAMAN yang genuinely care 
     }
   });
 
-  // GET /api/chat/:auditId - Get chat history for audit
-  app.get("/api/chat/:auditId", async (req, res) => {
+  // GET /api/chat/:auditId - Get chat history for audit (Protected)
+  app.get("/api/chat/:auditId", requireAuth, async (req, res) => {
     try {
+      const audit = await storage.getAudit(req.params.auditId);
+      if (!audit) {
+        res.status(404).json({ error: "Audit not found" });
+        return;
+      }
+      
+      // Check access permission
+      if (!canAccessAudit(req.user!.role, req.user!.id, audit.ownerId)) {
+        res.status(403).json({ 
+          error: "Forbidden", 
+          userMessage: "Anda tidak memiliki akses ke audit ini" 
+        });
+        return;
+      }
+      
       const history = await storage.getChatHistory(req.params.auditId);
       res.json(history);
     } catch (error) {
@@ -351,9 +405,24 @@ Remember: Kamu bukan AI assistant, kamu COACH BERPENGALAMAN yang genuinely care 
     }
   });
 
-  // DELETE /api/chat/:auditId - Clear chat history
-  app.delete("/api/chat/:auditId", async (req, res) => {
+  // DELETE /api/chat/:auditId - Clear chat history (Protected)
+  app.delete("/api/chat/:auditId", requireAuth, async (req, res) => {
     try {
+      const audit = await storage.getAudit(req.params.auditId);
+      if (!audit) {
+        res.status(404).json({ error: "Audit not found" });
+        return;
+      }
+      
+      // Check access permission
+      if (!canAccessAudit(req.user!.role, req.user!.id, audit.ownerId)) {
+        res.status(403).json({ 
+          error: "Forbidden", 
+          userMessage: "Anda tidak memiliki akses ke audit ini" 
+        });
+        return;
+      }
+      
       await storage.deleteChatHistory(req.params.auditId);
       res.json({ success: true });
     } catch (error) {
@@ -362,13 +431,22 @@ Remember: Kamu bukan AI assistant, kamu COACH BERPENGALAMAN yang genuinely care 
     }
   });
 
-  // GET /api/audit/:id/pdf - Download audit as PDF
-  app.get("/api/audit/:id/pdf", async (req, res) => {
+  // GET /api/audit/:id/pdf - Download audit as PDF (Protected)
+  app.get("/api/audit/:id/pdf", requireAuth, async (req, res) => {
     try {
       const audit = await storage.getAudit(req.params.id);
       
       if (!audit) {
         res.status(404).json({ error: "Audit not found" });
+        return;
+      }
+      
+      // Check access permission
+      if (!canAccessAudit(req.user!.role, req.user!.id, audit.ownerId)) {
+        res.status(403).json({ 
+          error: "Forbidden", 
+          userMessage: "Anda tidak memiliki akses ke audit ini" 
+        });
         return;
       }
       
@@ -385,8 +463,8 @@ Remember: Kamu bukan AI assistant, kamu COACH BERPENGALAMAN yang genuinely care 
     }
   });
 
-  // DELETE /api/audit/:id - Delete an audit
-  app.delete("/api/audit/:id", async (req, res) => {
+  // DELETE /api/audit/:id - Delete an audit (Protected - Full Admin only)
+  app.delete("/api/audit/:id", requireAuth, requireFullAdmin, async (req, res) => {
     try {
       const audit = await storage.getAudit(req.params.id);
       
