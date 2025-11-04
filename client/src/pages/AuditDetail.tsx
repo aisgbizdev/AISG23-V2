@@ -245,50 +245,106 @@ export default function AuditDetail() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="pilar" className="space-y-6">
-          <TabsList className="grid grid-cols-4 w-full">
-            <TabsTrigger value="pilar">18 Pilar</TabsTrigger>
-            <TabsTrigger value="swot">SWOT & Action</TabsTrigger>
-            <TabsTrigger value="prodem">ProDem</TabsTrigger>
-            <TabsTrigger value="magic">Magic Section</TabsTrigger>
-          </TabsList>
+          <div className="sticky top-[60px] sm:top-[68px] z-40 bg-background/95 backdrop-blur-xl pb-4 -mx-4 sm:-mx-6 md:-mx-8 px-4 sm:px-6 md:px-8 border-b">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-4xl mx-auto">
+              <TabsTrigger value="pilar" className="text-xs sm:text-sm">18 Pilar</TabsTrigger>
+              <TabsTrigger value="swot" className="text-xs sm:text-sm">SWOT & Action</TabsTrigger>
+              <TabsTrigger value="prodem" className="text-xs sm:text-sm">ProDem</TabsTrigger>
+              <TabsTrigger value="magic" className="text-xs sm:text-sm">Magic Section</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* 18 Pilar Tab */}
           <TabsContent value="pilar">
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">18 Pilar Reality Score</h2>
-              <p className="text-sm text-muted-foreground mb-6">
+            <Card className="p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">18 Pilar Reality Score</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
                 Sistem menganalisis self-assessment Anda dan membandingkannya dengan data real performa untuk menghasilkan Reality Score
               </p>
-              <div className="space-y-3">
+              <div className="space-y-3 sm:space-y-4">
                 {audit.pillarAnswers && Array.isArray(audit.pillarAnswers) && audit.pillarAnswers.map((pilar: any) => (
                   <div
                     key={pilar.pillarId}
-                    className="flex items-center gap-4 p-4 rounded-lg border hover-elevate"
+                    className="rounded-xl border bg-card/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/30"
                     data-testid={`pilar-${pilar.pillarId}`}
                   >
-                    <div className="flex-1">
-                      <p className="font-medium mb-1">{pilar.pillarName}</p>
-                      <p className="text-sm text-muted-foreground">{pilar.insight}</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold mb-1 text-sm sm:text-base">{pilar.pillarName}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{pilar.insight}</p>
+                      </div>
+                      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                        <div className="text-center px-2 sm:px-3 py-2 rounded-lg bg-muted/50">
+                          <p className="text-xl sm:text-2xl font-bold">{pilar.selfScore}</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">Self</p>
+                        </div>
+                        <div className="w-8 sm:w-10 text-center">
+                          {pilar.gap === 0 ? (
+                            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 mx-auto" />
+                          ) : pilar.gap > 0 ? (
+                            <span className="text-base sm:text-lg text-yellow-500 font-bold">+{pilar.gap}</span>
+                          ) : (
+                            <span className="text-base sm:text-lg text-red-500 font-bold">{pilar.gap}</span>
+                          )}
+                        </div>
+                        <div className="text-center px-2 sm:px-3 py-2 rounded-lg bg-primary/10">
+                          <p className="text-xl sm:text-2xl font-bold text-primary">{pilar.realityScore}</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">Reality</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold">{pilar.selfScore}</p>
-                        <p className="text-xs text-muted-foreground">Self</p>
+                    
+                    {/* Gap Analysis & Recommendation - Only show if there's a gap */}
+                    {pilar.gap !== 0 && (
+                      <div className={`px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t ${
+                        pilar.gap > 0 ? 'bg-yellow-500/5 border-yellow-500/20' : 'bg-red-500/5 border-red-500/20'
+                      }`}>
+                        <div className="flex items-start gap-2 mb-2">
+                          {pilar.gap > 0 ? (
+                            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 shrink-0 mt-0.5" />
+                          ) : (
+                            <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 shrink-0 mt-0.5" />
+                          )}
+                          <div className="flex-1">
+                            <p className={`text-xs sm:text-sm font-semibold mb-1 ${
+                              pilar.gap > 0 ? 'text-yellow-700' : 'text-red-700'
+                            }`}>
+                              {pilar.gap > 0 ? 'Overestimasi' : 'Underestimasi'} ({Math.abs(pilar.gap)} poin)
+                            </p>
+                            <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+                              {pilar.gap > 0 
+                                ? `Self-assessment Anda lebih tinggi ${Math.abs(pilar.gap)} poin dari reality score. Ini menunjukkan persepsi diri yang mungkin perlu disesuaikan dengan data performa aktual.`
+                                : `Reality score Anda lebih tinggi ${Math.abs(pilar.gap)} poin dari self-assessment. Ini menunjukkan Anda memiliki potensi yang belum Anda sadari sepenuhnya.`
+                              }
+                            </p>
+                            <div className="flex items-start gap-1.5 bg-background/50 rounded-lg p-2 sm:p-3">
+                              <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-xs font-medium text-primary mb-1">Rekomendasi Perbaikan:</p>
+                                <p className="text-xs text-foreground/90">
+                                  {pilar.gap > 0
+                                    ? `Fokus pada peningkatan kinerja aktual di area ini. Tinjau metrik performa, identifikasi hambatan, dan buat action plan konkret untuk meningkatkan hasil dari ${pilar.realityScore} menuju target ${pilar.selfScore}.`
+                                    : `Tingkatkan kepercayaan diri Anda. Data menunjukkan performa Anda sudah baik (${pilar.realityScore}). Akui pencapaian ini dan manfaatkan momentum untuk terus berkembang.`
+                                  }
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="w-8 text-center">
-                        {pilar.gap === 0 ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                        ) : pilar.gap > 0 ? (
-                          <span className="text-yellow-500 font-semibold">+{pilar.gap}</span>
-                        ) : (
-                          <span className="text-red-500 font-semibold">{pilar.gap}</span>
-                        )}
+                    )}
+
+                    {/* Perfect Score */}
+                    {pilar.gap === 0 && (
+                      <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t bg-green-500/5 border-green-500/20">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 shrink-0" />
+                          <p className="text-xs sm:text-sm text-green-700 font-medium">
+                            Self-assessment sesuai dengan reality score - Persepsi diri Anda akurat!
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-primary">{pilar.realityScore}</p>
-                        <p className="text-xs text-muted-foreground">Reality</p>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
