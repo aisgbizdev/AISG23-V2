@@ -26,6 +26,14 @@ export async function requireAuth(
 ): Promise<void> {
   const userId = req.session?.userId;
   
+  // Debug logging
+  console.log("requireAuth check:", {
+    sessionId: req.sessionID,
+    userId: userId,
+    session: req.session,
+    cookies: req.headers.cookie,
+  });
+  
   if (!userId) {
     res.status(401).json({ error: "Unauthorized", userMessage: "Silakan login terlebih dahulu" });
     return;

@@ -50,6 +50,13 @@ export function registerAuthRoutes(app: Express) {
         });
       });
       
+      // Debug logging
+      console.log("Login successful:", {
+        sessionId: req.sessionID,
+        userId: user.id,
+        username: user.username,
+      });
+      
       return res.json({ 
         success: true,
         user: {
