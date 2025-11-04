@@ -107,49 +107,52 @@ export default function AuditDetail() {
       <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="icon" 
               data-testid="button-back"
               onClick={() => setLocation("/")}
+              className="shrink-0 border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/50 transition-all"
+              title="Kembali ke Dashboard"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Audit Report</h1>
-                <Badge className={`${getProfilBadge(audit.profil)} border`}>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">Audit Report</h1>
+                <Badge className={`${getProfilBadge(audit.profil)} border shrink-0`}>
                   {audit.profil}
                 </Badge>
               </div>
-              <code className="text-sm font-mono text-muted-foreground" data-testid="detail-audit-id">
+              <code className="text-xs sm:text-sm font-mono text-muted-foreground break-all" data-testid="detail-audit-id">
                 {audit.id}
               </code>
             </div>
           </div>
           <Button 
-            className="gap-2" 
+            className="gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-gray-900 font-semibold shadow-lg shadow-amber-500/30 shrink-0" 
             onClick={() => window.open(`/api/audit/${audit.id}/pdf`, "_blank")}
             data-testid="button-download-pdf"
           >
             <Download className="w-4 h-4" />
-            Download PDF
+            <span className="hidden sm:inline">Download PDF</span>
+            <span className="sm:hidden">PDF</span>
           </Button>
         </div>
 
         {/* Executive Summary */}
-        <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20 shadow-lg">
+        <Card className="p-4 sm:p-6 bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent border-amber-500/20 shadow-lg">
           <div className="flex items-center gap-2 mb-4">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Award className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+            <div className="rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/20 p-2">
+              <Award className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
             </div>
             <h2 className="text-lg sm:text-xl font-bold">Executive Summary</h2>
           </div>
           <p className="text-sm sm:text-base leading-relaxed">{report?.executiveSummary}</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6">
-            <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm">
-              <p className="text-xl sm:text-2xl font-bold text-primary">{audit.totalRealityScore}</p>
+            <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm border border-amber-500/20">
+              <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-500 to-yellow-600 bg-clip-text text-transparent">{audit.totalRealityScore}</p>
               <p className="text-xs sm:text-sm text-muted-foreground">Reality Score</p>
             </div>
             <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm">

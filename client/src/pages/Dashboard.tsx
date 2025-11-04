@@ -92,16 +92,57 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-b border-amber-500/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-12 md:py-16">
+          <div className="text-center space-y-4 sm:space-y-6">
+            {/* Logo */}
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-red-500 rounded-full blur-xl opacity-30 animate-pulse" />
+                <div className="relative bg-gradient-to-br from-red-500 to-red-600 p-4 sm:p-5 md:p-6 rounded-full shadow-2xl">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-black">
+                    <span className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent">Ai</span>
+                    <span className="text-white">SG</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="space-y-2">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                AiSG – Audit Intelligence System Growth
+              </h1>
+              <p className="text-sm sm:text-base text-gray-300 flex items-center justify-center gap-2">
+                <span>By community builder</span>
+                <span className="text-amber-400">✨</span>
+              </p>
+            </div>
+
+            {/* Description */}
+            <div className="max-w-3xl mx-auto">
+              <p className="text-xs sm:text-sm md:text-base text-gray-200 leading-relaxed px-4">
+                <span className="text-red-400 font-semibold">🚀 **AiSG – Audit Intelligence System Growth**</span> A breakthrough AI system that helps you discover hidden potential & elevate performance.
+              </p>
+              <p className="text-xs sm:text-sm text-gray-400 mt-3">
+                **Powered by Newsmaker.id × NM23 Ai × ChatGPT–OpenAI**
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">Dashboard AiSG</h1>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">Dashboard Audit</h2>
             <p className="text-sm sm:text-base text-muted-foreground">
               Sistem Audit Intelligence untuk Evaluasi Kinerja & Kepemimpinan
             </p>
           </div>
           <Button 
-            className="gap-2" 
+            className="gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-gray-900 font-semibold shadow-lg shadow-amber-500/30" 
             data-testid="button-new-audit"
             onClick={() => setLocation("/audit/new")}
           >
