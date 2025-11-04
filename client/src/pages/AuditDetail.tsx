@@ -104,9 +104,9 @@ export default function AuditDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button 
               variant="ghost" 
@@ -117,8 +117,8 @@ export default function AuditDetail() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Audit Report</h1>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Audit Report</h1>
                 <Badge className={`${getProfilBadge(audit.profil)} border`}>
                   {audit.profil}
                 </Badge>
@@ -139,29 +139,31 @@ export default function AuditDetail() {
         </div>
 
         {/* Executive Summary */}
-        <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+        <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20 shadow-lg">
           <div className="flex items-center gap-2 mb-4">
-            <Award className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-bold">Executive Summary</h2>
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Award className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+            </div>
+            <h2 className="text-lg sm:text-xl font-bold">Executive Summary</h2>
           </div>
-          <p className="text-base leading-relaxed">{report?.executiveSummary}</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <div className="text-center p-3 bg-background/50 rounded-lg">
-              <p className="text-2xl font-bold text-primary">{audit.totalRealityScore}</p>
-              <p className="text-sm text-muted-foreground">Reality Score</p>
+          <p className="text-sm sm:text-base leading-relaxed">{report?.executiveSummary}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6">
+            <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm">
+              <p className="text-xl sm:text-2xl font-bold text-primary">{audit.totalRealityScore}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Reality Score</p>
             </div>
-            <div className="text-center p-3 bg-background/50 rounded-lg">
-              <p className="text-2xl font-bold">{audit.totalSelfScore}</p>
-              <p className="text-sm text-muted-foreground">Self Score</p>
+            <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm">
+              <p className="text-xl sm:text-2xl font-bold">{audit.totalSelfScore}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Self Score</p>
             </div>
-            <div className="text-center p-3 bg-background/50 rounded-lg">
-              <p className={`text-2xl font-bold ${audit.totalGap > 0 ? 'text-yellow-500' : audit.totalGap < 0 ? 'text-red-500' : 'text-green-500'}`}>
+            <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm">
+              <p className={`text-xl sm:text-2xl font-bold ${audit.totalGap > 0 ? 'text-yellow-500' : audit.totalGap < 0 ? 'text-red-500' : 'text-green-500'}`}>
                 {audit.totalGap > 0 ? '+' : ''}{audit.totalGap}
               </p>
-              <p className="text-sm text-muted-foreground">Gap</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Gap</p>
             </div>
-            <div className="text-center p-3 bg-background/50 rounded-lg">
-              <Badge className={`${getZonaBadgeColor(audit.zonaFinal)} text-sm border`}>
+            <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm flex items-center justify-center">
+              <Badge className={`${getZonaBadgeColor(audit.zonaFinal)} text-xs sm:text-sm border`}>
                 {getZonaText(audit.zonaFinal)}
               </Badge>
             </div>
@@ -303,68 +305,76 @@ export default function AuditDetail() {
               </Card>
 
               {/* SWOT Analysis */}
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-6">SWOT Analysis</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">SWOT Analysis</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {/* Strength */}
-                  <div className="p-4 border border-green-500/30 rounded-lg bg-green-500/5">
+                  <div className="p-4 border border-green-500/30 rounded-xl bg-gradient-to-br from-green-500/10 to-green-500/5 backdrop-blur-sm">
                     <h3 className="font-semibold text-green-600 mb-3 flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5" />
-                      Strength
+                      <div className="rounded-lg bg-green-500/20 p-1.5">
+                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-sm sm:text-base">Strength</span>
                     </h3>
                     <ul className="space-y-2">
                       {report?.swotAnalysis?.strength?.map((item: string, idx: number) => (
-                        <li key={idx} className="text-sm flex gap-2">
-                          <span className="text-green-600">•</span>
-                          <span>{item}</span>
+                        <li key={idx} className="text-xs sm:text-sm flex gap-2">
+                          <span className="text-green-600 mt-1">•</span>
+                          <span className="flex-1">{item}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
                   {/* Weakness */}
-                  <div className="p-4 border border-red-500/30 rounded-lg bg-red-500/5">
+                  <div className="p-4 border border-red-500/30 rounded-xl bg-gradient-to-br from-red-500/10 to-red-500/5 backdrop-blur-sm">
                     <h3 className="font-semibold text-red-600 mb-3 flex items-center gap-2">
-                      <XCircle className="w-5 h-5" />
-                      Weakness
+                      <div className="rounded-lg bg-red-500/20 p-1.5">
+                        <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-sm sm:text-base">Weakness</span>
                     </h3>
                     <ul className="space-y-2">
                       {report?.swotAnalysis?.weakness?.map((item: string, idx: number) => (
-                        <li key={idx} className="text-sm flex gap-2">
-                          <span className="text-red-600">•</span>
-                          <span>{item}</span>
+                        <li key={idx} className="text-xs sm:text-sm flex gap-2">
+                          <span className="text-red-600 mt-1">•</span>
+                          <span className="flex-1">{item}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
                   {/* Opportunity */}
-                  <div className="p-4 border border-blue-500/30 rounded-lg bg-blue-500/5">
+                  <div className="p-4 border border-blue-500/30 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 backdrop-blur-sm">
                     <h3 className="font-semibold text-blue-600 mb-3 flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5" />
-                      Opportunity
+                      <div className="rounded-lg bg-blue-500/20 p-1.5">
+                        <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-sm sm:text-base">Opportunity</span>
                     </h3>
                     <ul className="space-y-2">
                       {report?.swotAnalysis?.opportunity?.map((item: string, idx: number) => (
-                        <li key={idx} className="text-sm flex gap-2">
-                          <span className="text-blue-600">•</span>
-                          <span>{item}</span>
+                        <li key={idx} className="text-xs sm:text-sm flex gap-2">
+                          <span className="text-blue-600 mt-1">•</span>
+                          <span className="flex-1">{item}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
                   {/* Threat */}
-                  <div className="p-4 border border-yellow-500/30 rounded-lg bg-yellow-500/5">
+                  <div className="p-4 border border-yellow-500/30 rounded-xl bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 backdrop-blur-sm">
                     <h3 className="font-semibold text-yellow-600 mb-3 flex items-center gap-2">
-                      <AlertTriangle className="w-5 h-5" />
-                      Threat
+                      <div className="rounded-lg bg-yellow-500/20 p-1.5">
+                        <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </div>
+                      <span className="text-sm sm:text-base">Threat</span>
                     </h3>
                     <ul className="space-y-2">
                       {report?.swotAnalysis?.threat?.map((item: string, idx: number) => (
-                        <li key={idx} className="text-sm flex gap-2">
-                          <span className="text-yellow-600">•</span>
-                          <span>{item}</span>
+                        <li key={idx} className="text-xs sm:text-sm flex gap-2">
+                          <span className="text-yellow-600 mt-1">•</span>
+                          <span className="flex-1">{item}</span>
                         </li>
                       ))}
                     </ul>
@@ -453,18 +463,18 @@ export default function AuditDetail() {
 
           {/* ProDem Tab */}
           <TabsContent value="prodem">
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-6">Rekomendasi ProDem (Promotion-Demotion)</h2>
+            <Card className="p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Rekomendasi ProDem (Promotion-Demotion)</h2>
               {prodem && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between p-6 rounded-lg border-2 border-primary/30 bg-primary/5">
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5">
                     <div>
-                      <p className="text-sm text-muted-foreground">Current Level</p>
-                      <p className="text-xl font-bold">{prodem.currentLevel}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Current Level</p>
+                      <p className="text-lg sm:text-xl font-bold">{prodem.currentLevel}</p>
                     </div>
-                    <div className="text-center">
+                    <div className="text-left sm:text-center">
                       <Badge 
-                        className={`text-lg px-4 py-2 ${
+                        className={`text-sm sm:text-lg px-3 sm:px-4 py-1.5 sm:py-2 ${
                           prodem.recommendation === 'Promosi' ? 'bg-green-500' :
                           prodem.recommendation === 'Demosi' ? 'bg-red-500' :
                           prodem.recommendation === 'Pembinaan' ? 'bg-yellow-500' :
@@ -474,23 +484,23 @@ export default function AuditDetail() {
                         {prodem.recommendation}
                       </Badge>
                       {prodem.nextLevel && (
-                        <p className="text-sm text-muted-foreground mt-2">→ {prodem.nextLevel}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-2">→ {prodem.nextLevel}</p>
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-semibold mb-2">Alasan</h3>
-                      <p>{prodem.reason}</p>
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="p-3 sm:p-4 border rounded-xl bg-card/50">
+                      <h3 className="font-semibold mb-2 text-sm sm:text-base">Alasan</h3>
+                      <p className="text-xs sm:text-sm">{prodem.reason}</p>
                     </div>
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-semibold mb-2">Konsekuensi</h3>
-                      <p>{prodem.konsekuensi}</p>
+                    <div className="p-3 sm:p-4 border rounded-xl bg-card/50">
+                      <h3 className="font-semibold mb-2 text-sm sm:text-base">Konsekuensi</h3>
+                      <p className="text-xs sm:text-sm">{prodem.konsekuensi}</p>
                     </div>
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-semibold mb-2">Next Step</h3>
-                      <p>{prodem.nextStep}</p>
+                    <div className="p-3 sm:p-4 border rounded-xl bg-card/50">
+                      <h3 className="font-semibold mb-2 text-sm sm:text-base">Next Step</h3>
+                      <p className="text-xs sm:text-sm">{prodem.nextStep}</p>
                     </div>
                     {prodem.strategyType && prodem.strategyType !== "N/A" && (
                       <div className="p-4 border rounded-lg bg-primary/5">

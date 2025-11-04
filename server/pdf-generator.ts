@@ -7,7 +7,7 @@ export function generateAuditPDF(audit: Audit): typeof PDFDocument {
     margin: 50,
     info: {
       Title: `Audit Report - ${audit.nama}`,
-      Author: "AISG - Audit Intelligence SG",
+      Author: "AiSG - Audit Intelligence SG",
       Subject: "Performance Audit Report"
     }
   });
@@ -16,7 +16,7 @@ export function generateAuditPDF(audit: Audit): typeof PDFDocument {
   const prodem = audit.prodemRekomendasi as any;
   const magic = audit.magicSection as any;
   
-  doc.fontSize(24).font("Helvetica-Bold").text("AUDIT INTELLIGENCE SG", { align: "center" });
+  doc.fontSize(24).font("Helvetica-Bold").text("AiSG - AUDIT INTELLIGENCE", { align: "center" });
   doc.moveDown(0.5);
   doc.fontSize(18).text("Performance Audit Report", { align: "center" });
   doc.moveDown(2);
@@ -149,7 +149,7 @@ export function generateAuditPDF(audit: Audit): typeof PDFDocument {
   doc.fontSize(10).font("Helvetica").fillColor("#999");
   doc.text("---", { align: "center" });
   doc.text("This report is confidential and intended for internal use only.", { align: "center" });
-  doc.text(`AISG - Audit Intelligence SG © ${new Date().getFullYear()}`, { align: "center" });
+  doc.text(`AiSG - Audit Intelligence SG © ${new Date().getFullYear()}`, { align: "center" });
   
   doc.end();
   return doc;

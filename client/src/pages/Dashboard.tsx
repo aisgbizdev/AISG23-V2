@@ -92,11 +92,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Dashboard AISG</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">Dashboard AiSG</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Sistem Audit Intelligence untuk Evaluasi Kinerja & Kepemimpinan
             </p>
           </div>
@@ -110,7 +110,7 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           <StatCard
             title="Total Audit"
             value={totalAudits}
@@ -166,7 +166,7 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredAudits.map((audit) => (
                   <AuditCard
                     key={audit.id}
