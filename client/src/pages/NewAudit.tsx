@@ -65,11 +65,12 @@ const getVisibleTeamFields = (jabatan: string) => {
   const userIndex = hierarchy.indexOf(userLevel);
   if (userIndex === -1) return []; // Show nothing if not found
   
-  // BC (index 0) doesn't have any subordinates, so return empty array
-  // For other positions, show only levels BELOW them (not including their own level)
-  // Example: SBC (index 1) shows only BC (index 0)
-  //          BSM (index 2) shows BC and SBC (indices 0-1)
-  return hierarchy.slice(0, userIndex);
+  // ProDem system: user can have subordinates up to their own level (inclusive)
+  // User CANNOT have subordinates with higher position than their own
+  // Example: BC can have BC subordinates
+  //          SBC can have BC and SBC subordinates
+  //          BSM can have BC, SBC, and BSM subordinates
+  return hierarchy.slice(0, userIndex + 1);
 };
 
 export default function NewAudit() {
