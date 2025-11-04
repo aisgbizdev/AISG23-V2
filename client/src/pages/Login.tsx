@@ -94,10 +94,8 @@ export default function Login() {
                 <Label htmlFor="password" className="text-gray-300">
                   Password
                 </Label>
-                <Link href="/forgot-password">
-                  <a className="text-xs text-purple-400 hover:text-purple-300">
-                    Lupa Password?
-                  </a>
+                <Link href="/forgot-password" className="text-xs text-purple-400 hover:text-purple-300">
+                  Lupa Password?
                 </Link>
               </div>
               <div className="relative">
@@ -141,10 +139,8 @@ export default function Login() {
             <div className="space-y-3 pt-2">
               <div className="text-center text-sm">
                 <span className="text-gray-400">Belum punya akun? </span>
-                <Link href="/register">
-                  <a className="text-purple-400 hover:text-purple-300 font-medium">
-                    Daftar di sini
-                  </a>
+                <Link href="/register" className="text-purple-400 hover:text-purple-300 font-medium">
+                  Daftar di sini
                 </Link>
               </div>
 

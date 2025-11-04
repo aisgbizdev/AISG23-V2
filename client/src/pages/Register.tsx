@@ -274,10 +274,8 @@ export default function Register() {
             {/* Login link */}
             <div className="text-center text-sm">
               <span className="text-gray-400">Sudah punya akun? </span>
-              <Link href="/login">
-                <a className="text-purple-400 hover:text-purple-300 font-medium">
-                  Login di sini
-                </a>
+              <Link href="/login" className="text-purple-400 hover:text-purple-300 font-medium">
+                Login di sini
               </Link>
             </div>
           </form>
