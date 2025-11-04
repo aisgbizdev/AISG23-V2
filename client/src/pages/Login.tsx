@@ -81,6 +81,7 @@ export default function Login() {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Masukkan username"
                   className="pl-10 bg-gray-800/50 border-gray-700 focus:border-purple-500 text-white placeholder:text-gray-500"
+                  autoComplete="username"
                   required
                   autoFocus
                 />
@@ -101,6 +102,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan password"
                   className="pl-10 bg-gray-800/50 border-gray-700 focus:border-purple-500 text-white placeholder:text-gray-500"
+                  autoComplete="current-password"
                   required
                 />
               </div>

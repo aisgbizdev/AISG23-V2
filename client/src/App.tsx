@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -13,18 +13,11 @@ import Login from "@/pages/Login";
 import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
 import { ClipboardList, MessageCircle, LogOut, UserCircle, Shield, Home } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 // Protected Route Component
-function ProtectedRoute({ component: Component }: { component: () => ReactNode }) {
+function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      setLocation("/login");
-    }
-  }, [user, isLoading, setLocation]);
 
   if (isLoading) {
     return (
@@ -38,10 +31,10 @@ function ProtectedRoute({ component: Component }: { component: () => ReactNode }
   }
 
   if (!user) {
-    return null; // Will redirect via useEffect
+    return <Redirect to="/login" />;
   }
 
-  return <>{Component()}</>;
+  return <>{children}</>;
 }
 
 function Router() {
@@ -49,16 +42,24 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/">
-        {() => <ProtectedRoute component={Dashboard} />}
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
       </Route>
       <Route path="/admin">
-        {() => <ProtectedRoute component={AdminDashboard} />}
+        <ProtectedRoute>
+          <AdminDashboard />
+        </ProtectedRoute>
       </Route>
       <Route path="/audit/new">
-        {() => <ProtectedRoute component={NewAudit} />}
+        <ProtectedRoute>
+          <NewAudit />
+        </ProtectedRoute>
       </Route>
       <Route path="/audit/:id">
-        {() => <ProtectedRoute component={AuditDetail} />}
+        <ProtectedRoute>
+          <AuditDetail />
+        </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
     </Switch>
