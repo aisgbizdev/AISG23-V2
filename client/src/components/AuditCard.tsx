@@ -60,13 +60,13 @@ export default function AuditCard({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground">Kinerja:</span>
+            <span className="text-muted-foreground whitespace-nowrap">Kinerja:</span>
             <ZoneBadge type={zonaKinerja} size="sm" data-testid={`${testId}-zona-kinerja`} />
           </div>
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground">Perilaku:</span>
+            <span className="text-muted-foreground whitespace-nowrap">Perilaku:</span>
             <ZoneBadge type={zonaPerilaku} size="sm" data-testid={`${testId}-zona-perilaku`} />
           </div>
         </div>

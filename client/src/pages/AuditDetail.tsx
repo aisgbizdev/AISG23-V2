@@ -249,11 +249,31 @@ export default function AuditDetail() {
         {/* Main Tabs */}
         <Tabs defaultValue="pilar" className="space-y-6">
           <div className="sticky top-[60px] sm:top-[68px] z-40 bg-background/95 backdrop-blur-xl pb-4 -mx-4 sm:-mx-6 md:-mx-8 px-4 sm:px-6 md:px-8 border-b">
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-4xl mx-auto">
-              <TabsTrigger value="pilar" className="text-xs sm:text-sm">18 Pilar</TabsTrigger>
-              <TabsTrigger value="swot" className="text-xs sm:text-sm">SWOT & Action</TabsTrigger>
-              <TabsTrigger value="prodem" className="text-xs sm:text-sm">ProDem</TabsTrigger>
-              <TabsTrigger value="magic" className="text-xs sm:text-sm">Magic Section</TabsTrigger>
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-4xl mx-auto h-auto gap-2 bg-transparent p-1">
+              <TabsTrigger 
+                value="pilar" 
+                className="text-xs sm:text-sm data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground h-10 rounded-lg font-medium transition-all"
+              >
+                18 Pilar
+              </TabsTrigger>
+              <TabsTrigger 
+                value="swot" 
+                className="text-xs sm:text-sm data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground h-10 rounded-lg font-medium transition-all"
+              >
+                SWOT & Action
+              </TabsTrigger>
+              <TabsTrigger 
+                value="prodem" 
+                className="text-xs sm:text-sm data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground h-10 rounded-lg font-medium transition-all"
+              >
+                ProDem
+              </TabsTrigger>
+              <TabsTrigger 
+                value="magic" 
+                className="text-xs sm:text-sm data-[state=active]:bg-pink-500 data-[state=active]:text-white data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground h-10 rounded-lg font-medium transition-all"
+              >
+                Magic Section
+              </TabsTrigger>
             </TabsList>
           </div>
 

@@ -114,10 +114,10 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
 
   return (
     <Card className="flex flex-col h-full">
-      <div className="p-4 border-b flex items-center justify-between gap-2">
+      <div className="p-3 sm:p-4 border-b flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold">AI Coach</h3>
+          <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base">AI Coach</h3>
         </div>
         <div className="flex gap-1">
           <Button
@@ -126,8 +126,9 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
             onClick={exportChat}
             disabled={history.length === 0}
             data-testid="button-export-chat"
+            className="h-8 w-8 sm:h-10 sm:w-10"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
           <Button
             size="icon"
@@ -135,13 +136,14 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
             onClick={() => clearHistoryMutation.mutate()}
             disabled={history.length === 0 || clearHistoryMutation.isPending}
             data-testid="button-clear-chat"
+            className="h-8 w-8 sm:h-10 sm:w-10"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-3 sm:p-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             <Loader2 className="w-6 h-6 animate-spin" />
@@ -153,7 +155,7 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
             <p className="text-xs">Mulai diskusi dengan AI Coach untuk insight lebih dalam tentang hasil audit Anda</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {history.map((msg, idx) => (
               <div
                 key={idx}
@@ -161,13 +163,13 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
                 data-testid={`message-${msg.role}-${idx}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-md p-3 ${
+                  className={`max-w-[85%] sm:max-w-[80%] rounded-md p-2.5 sm:p-3 ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                 </div>
               </div>
             ))}
@@ -186,8 +188,8 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
 
       <Separator />
       
-      <div className="p-4 space-y-3">
-        <div className="text-sm text-muted-foreground">
+      <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+        <div className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
           💬 <span className="font-medium">Mari kita diskusikan hasil auditnya!</span> Tanya apa saja tentang performa, rekomendasi, atau strategi improvement Anda.
         </div>
         <form
@@ -203,15 +205,16 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
             placeholder="Ketik pertanyaan Anda disini..."
             disabled={sendMessageMutation.isPending}
             data-testid="input-chat-message"
-            className="flex-1"
+            className="flex-1 text-sm h-9 sm:h-10"
           />
           <Button
             type="submit"
             size="icon"
             disabled={!message.trim() || sendMessageMutation.isPending}
             data-testid="button-send-message"
+            className="h-9 w-9 sm:h-10 sm:w-10 shrink-0"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
         </form>
       </div>

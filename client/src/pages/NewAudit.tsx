@@ -36,6 +36,39 @@ const PILAR_NAMES = [
   "P18: Pemahaman Pasar Lokal"
 ];
 
+// Helper function to determine which team structure fields should be shown
+const getVisibleTeamFields = (jabatan: string) => {
+  const hierarchy = [
+    "BC",
+    "SBC",
+    "BSM",
+    "SBM",
+    "EM",
+    "SEM",
+    "VBM"
+  ];
+  
+  // Map full jabatan names to hierarchy keys
+  const jabatanMap: Record<string, string> = {
+    "Business Consultant (BC)": "BC",
+    "Senior Business Consultant (SBC)": "SBC",
+    "Business Manager (BSM)": "BSM",
+    "Senior Business Manager (SBM)": "SBM",
+    "Executive Manager (EM)": "EM",
+    "Senior Executive Manager (SEM)": "SEM",
+    "Vice Business Manager (VBM)": "VBM"
+  };
+  
+  const userLevel = jabatanMap[jabatan];
+  if (!userLevel) return hierarchy; // Show all if unknown
+  
+  const userIndex = hierarchy.indexOf(userLevel);
+  if (userIndex === -1) return hierarchy; // Show all if not found
+  
+  // Return from BC up to user's level (inclusive)
+  return hierarchy.slice(0, userIndex + 1);
+};
+
 export default function NewAudit() {
   const [step, setStep] = useState(1);
   const [, setLocation] = useLocation();
@@ -606,149 +639,166 @@ export default function NewAudit() {
             )}
 
             {/* STEP 3: Team Structure */}
-            {step === 3 && (
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Struktur Tim</h2>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Isi jumlah anggota tim di setiap level (isi 0 jika tidak punya tim di level tersebut)
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="jumlahBC"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>BC</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="0" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            data-testid="input-bc" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+            {step === 3 && (() => {
+              const visibleFields = getVisibleTeamFields(form.watch("jabatan"));
+              return (
+                <Card className="p-6">
+                  <h2 className="text-xl font-semibold mb-4">Struktur Tim</h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Isi jumlah anggota tim di setiap level (isi 0 jika tidak punya tim di level tersebut)
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {visibleFields.includes("BC") && (
+                      <FormField
+                        control={form.control}
+                        name="jumlahBC"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>BC</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                data-testid="input-bc" 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="jumlahSBC"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>SBC</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="0" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            data-testid="input-sbc" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    {visibleFields.includes("SBC") && (
+                      <FormField
+                        control={form.control}
+                        name="jumlahSBC"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>SBC</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                data-testid="input-sbc" 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="jumlahBsM"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>BSM/BsM</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="0" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            data-testid="input-bsm" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    {visibleFields.includes("BSM") && (
+                      <FormField
+                        control={form.control}
+                        name="jumlahBsM"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>BSM/BsM</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                data-testid="input-bsm" 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="jumlahSBM"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>SBM</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="0" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            data-testid="input-sbm" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    {visibleFields.includes("SBM") && (
+                      <FormField
+                        control={form.control}
+                        name="jumlahSBM"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>SBM</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                data-testid="input-sbm" 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="jumlahEM"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>EM</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="0" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            data-testid="input-em" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    {visibleFields.includes("EM") && (
+                      <FormField
+                        control={form.control}
+                        name="jumlahEM"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>EM</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                data-testid="input-em" 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="jumlahSEM"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>SEM</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="0" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            data-testid="input-sem" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    {visibleFields.includes("SEM") && (
+                      <FormField
+                        control={form.control}
+                        name="jumlahSEM"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>SEM</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                data-testid="input-sem" 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="jumlahVBM"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>VBM</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="0" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            data-testid="input-vbm" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    {visibleFields.includes("VBM") && (
+                      <FormField
+                        control={form.control}
+                        name="jumlahVBM"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>VBM</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="0" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                data-testid="input-vbm" 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
-                </div>
-              </Card>
-            )}
+                  </div>
+                </Card>
+              );
+            })()}
 
             {/* STEP 4: 18 Pilar Self Assessment (Scale 1-5) */}
             {step === 4 && (
