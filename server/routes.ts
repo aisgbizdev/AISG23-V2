@@ -155,7 +155,7 @@ Jawab dengan concise (2-3 paragraf max), fokus pada value bukan panjang teks.`;
             parts: [{ text: msg.content }]
           }));
           
-          const response = await gemini.models.generateContent({
+          const result = await gemini.models.generateContent({
             model: "gemini-2.0-flash-exp",
             systemInstruction: systemPrompt,
             generationConfig: {
@@ -171,7 +171,7 @@ Jawab dengan concise (2-3 paragraf max), fokus pada value bukan panjang teks.`;
             ]
           });
           
-          const geminiText = response.text;
+          const geminiText = result.response?.text();
           
           if (geminiText && geminiText.trim().length > 0) {
             aiResponse = geminiText.trim();
