@@ -10,14 +10,21 @@ import Dashboard from "@/pages/Dashboard";
 import AuditDetail from "@/pages/AuditDetail";
 import NewAudit from "@/pages/NewAudit";
 import Login from "@/pages/Login";
+import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
-import { ClipboardList, MessageCircle, LogOut, UserCircle } from "lucide-react";
-import type { ReactNode } from "react";
+import { ClipboardList, MessageCircle, LogOut, UserCircle, Shield, Home } from "lucide-react";
+import { useEffect, type ReactNode } from "react";
 
 // Protected Route Component
 function ProtectedRoute({ component: Component }: { component: () => ReactNode }) {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      setLocation("/login");
+    }
+  }, [user, isLoading, setLocation]);
 
   if (isLoading) {
     return (
@@ -31,21 +38,21 @@ function ProtectedRoute({ component: Component }: { component: () => ReactNode }
   }
 
   if (!user) {
-    setLocation("/login");
-    return null;
+    return null; // Will redirect via useEffect
   }
 
   return <>{Component()}</>;
 }
 
 function Router() {
-  const { user } = useAuth();
-  
   return (
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/">
         {() => <ProtectedRoute component={Dashboard} />}
+      </Route>
+      <Route path="/admin">
+        {() => <ProtectedRoute component={AdminDashboard} />}
       </Route>
       <Route path="/audit/new">
         {() => <ProtectedRoute component={NewAudit} />}
@@ -61,7 +68,7 @@ function Router() {
 // Header with auth info
 function AppHeader() {
   const { user, logout } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   const handleLogout = async () => {
     await logout();
@@ -73,17 +80,43 @@ function AppHeader() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="rounded-full overflow-hidden shadow-lg ring-2 ring-amber-500/30 w-10 h-10 sm:w-12 sm:h-12">
-            <img 
-              src="/logo-aisg.jpg" 
-              alt="AiSG" 
-              className="w-full h-full object-cover"
-            />
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setLocation("/")}>
+            <div className="rounded-full overflow-hidden shadow-lg ring-2 ring-amber-500/30 w-10 h-10 sm:w-12 sm:h-12">
+              <img 
+                src="/logo-aisg.jpg" 
+                alt="AiSG" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">AiSG</h1>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Audit Intelligence SG</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">AiSG</h1>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Audit Intelligence SG</p>
+
+          {/* Navigation Links */}
+          <div className="hidden sm:flex items-center gap-2">
+            <Button
+              variant={location === "/" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setLocation("/")}
+              className="gap-1.5"
+            >
+              <Home className="w-4 h-4" />
+              Home
+            </Button>
+            {user.role === "full_admin" && (
+              <Button
+                variant={location === "/admin" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setLocation("/admin")}
+                className="gap-1.5 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:border-purple-500/40"
+              >
+                <Shield className="w-4 h-4" />
+                Admin
+              </Button>
+            )}
           </div>
         </div>
         
