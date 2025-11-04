@@ -5,8 +5,18 @@
 
 import type { Express, Request, Response } from "express";
 import { z } from "zod";
-import { loginSchema, insertUserSchema } from "@shared/schema";
-import { authenticateUser, createUser, getAllUsers, deleteUser, updateUserPassword } from "./auth";
+import { loginSchema, registerSchema, resetPasswordSchema } from "@shared/schema";
+import { 
+  authenticateUser, 
+  createUser, 
+  registerUser,
+  getAllUsers, 
+  deleteUser, 
+  updateUserPassword,
+  getSecurityQuestion,
+  verifySecurityAnswer,
+  resetPassword
+} from "./auth";
 import { requireAuth, requireFullAdmin, requireAdmin } from "./middleware";
 
 export function registerAuthRoutes(app: Express) {
@@ -87,9 +97,56 @@ export function registerAuthRoutes(app: Express) {
   
   /**
    * POST /api/auth/register
-   * Register new user (only Full Admin can do this)
+   * Public self-registration (creates regular_user)
    */
-  app.post("/api/auth/register", requireAuth, requireFullAdmin, async (req: Request, res: Response) => {
+  app.post("/api/auth/register", async (req: Request, res: Response) => {
+    try {
+      const userData = registerSchema.parse(req.body);
+      
+      // Register user (always creates regular_user)
+      const user = await registerUser(userData);
+      
+      // Auto-login after registration
+      req.session.userId = user.id;
+      
+      // Return without password and security answer
+      const { password: _, securityAnswer: __, ...userWithoutSensitive } = user;
+      
+      return res.status(201).json({ 
+        success: true,
+        user: userWithoutSensitive,
+        message: "Akun berhasil dibuat" 
+      });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation error",
+          userMessage: error.errors[0].message,
+          details: error.errors 
+        });
+      }
+      
+      // Handle unique constraint violation (duplicate username)
+      if (error.code === "23505") {
+        return res.status(409).json({ 
+          error: "Username already exists",
+          userMessage: "Username sudah digunakan" 
+        });
+      }
+      
+      console.error("Register error:", error);
+      return res.status(500).json({ 
+        error: "Internal server error",
+        userMessage: "Gagal membuat akun baru" 
+      });
+    }
+  });
+  
+  /**
+   * POST /api/auth/create-user
+   * Create user with specific role (Full Admin only)
+   */
+  app.post("/api/auth/create-user", requireAuth, requireFullAdmin, async (req: Request, res: Response) => {
     try {
       const createUserSchema = z.object({
         username: z.string().min(3, "Username minimal 3 karakter"),
@@ -129,10 +186,77 @@ export function registerAuthRoutes(app: Express) {
         });
       }
       
-      console.error("Register error:", error);
+      console.error("Create user error:", error);
       return res.status(500).json({ 
         error: "Internal server error",
         userMessage: "Gagal membuat user baru" 
+      });
+    }
+  });
+  
+  /**
+   * GET /api/auth/security-question/:username
+   * Get security question for password reset
+   */
+  app.get("/api/auth/security-question/:username", async (req: Request, res: Response) => {
+    try {
+      const username = req.params.username;
+      const question = await getSecurityQuestion(username);
+      
+      if (!question) {
+        return res.status(404).json({ 
+          error: "User not found",
+          userMessage: "Username tidak ditemukan atau tidak memiliki pertanyaan keamanan" 
+        });
+      }
+      
+      return res.json({ securityQuestion: question });
+    } catch (error) {
+      console.error("Get security question error:", error);
+      return res.status(500).json({ 
+        error: "Internal server error",
+        userMessage: "Gagal mengambil pertanyaan keamanan" 
+      });
+    }
+  });
+  
+  /**
+   * POST /api/auth/reset-password
+   * Reset password using security question
+   */
+  app.post("/api/auth/reset-password", async (req: Request, res: Response) => {
+    try {
+      const { username, securityAnswer, newPassword } = resetPasswordSchema.parse(req.body);
+      
+      // Verify security answer
+      const isValid = await verifySecurityAnswer(username, securityAnswer);
+      
+      if (!isValid) {
+        return res.status(401).json({ 
+          error: "Invalid security answer",
+          userMessage: "Jawaban keamanan salah" 
+        });
+      }
+      
+      // Reset password
+      await resetPassword(username, newPassword);
+      
+      return res.json({ 
+        success: true,
+        message: "Password berhasil direset" 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation error",
+          userMessage: error.errors[0].message 
+        });
+      }
+      
+      console.error("Reset password error:", error);
+      return res.status(500).json({ 
+        error: "Internal server error",
+        userMessage: "Gagal mereset password" 
       });
     }
   });

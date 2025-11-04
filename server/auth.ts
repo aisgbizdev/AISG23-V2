@@ -33,8 +33,15 @@ export async function createUser(data: {
   name: string;
   email?: string;
   role: "full_admin" | "admin" | "auditor" | "regular_user";
+  securityQuestion?: string;
+  securityAnswer?: string;
 }): Promise<User> {
   const hashedPassword = await hashPassword(data.password);
+  
+  // Hash security answer if provided (for password reset)
+  const hashedSecurityAnswer = data.securityAnswer 
+    ? await hashPassword(data.securityAnswer.toLowerCase().trim())
+    : undefined;
   
   const [user] = await db.insert(users).values({
     username: data.username,
@@ -42,9 +49,81 @@ export async function createUser(data: {
     name: data.name,
     email: data.email,
     role: data.role,
+    securityQuestion: data.securityQuestion,
+    securityAnswer: hashedSecurityAnswer,
   }).returning();
   
   return user;
+}
+
+/**
+ * Register a new user (public registration)
+ * Always creates regular_user role
+ */
+export async function registerUser(data: {
+  username: string;
+  password: string;
+  name: string;
+  email?: string;
+  securityQuestion: string;
+  securityAnswer: string;
+}): Promise<User> {
+  return createUser({
+    ...data,
+    role: "regular_user",
+  });
+}
+
+/**
+ * Get security question for a username
+ */
+export async function getSecurityQuestion(username: string): Promise<string | null> {
+  const [user] = await db
+    .select({ securityQuestion: users.securityQuestion })
+    .from(users)
+    .where(eq(users.username, username))
+    .limit(1);
+  
+  return user?.securityQuestion || null;
+}
+
+/**
+ * Verify security answer for password reset
+ */
+export async function verifySecurityAnswer(
+  username: string,
+  answer: string
+): Promise<boolean> {
+  const [user] = await db
+    .select({ securityAnswer: users.securityAnswer })
+    .from(users)
+    .where(eq(users.username, username))
+    .limit(1);
+  
+  if (!user || !user.securityAnswer) {
+    return false;
+  }
+  
+  // Compare with hashed answer (case-insensitive)
+  return verifyPassword(answer.toLowerCase().trim(), user.securityAnswer);
+}
+
+/**
+ * Reset password using security question
+ */
+export async function resetPassword(
+  username: string,
+  newPassword: string
+): Promise<void> {
+  const hashedPassword = await hashPassword(newPassword);
+  
+  await db
+    .update(users)
+    .set({ 
+      password: hashedPassword,
+      updatedAt: new Date()
+    })
+    .where(eq(users.username, username));
 }
 
 /**
