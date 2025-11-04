@@ -1,14 +1,36 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// Session configuration
+declare module "express-session" {
+  interface SessionData {
+    userId?: string;
+  }
+}
 
 declare module 'http' {
   interface IncomingMessage {
     rawBody: unknown
   }
 }
+
+// Session middleware (before body parsers for security)
+app.use(session({
+  secret: process.env.SESSION_SECRET || "aisg-secret-key-change-in-production",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === "production", // HTTPS only in production
+    httpOnly: true, // Prevent XSS
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: "lax", // CSRF protection
+  },
+}));
+
 app.use(express.json({
   verify: (req, _res, buf) => {
     req.rawBody = buf;

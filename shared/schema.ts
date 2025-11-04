@@ -7,16 +7,29 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  password: text("password").notNull(), // Will store bcrypt hash
+  name: text("name").notNull().default("User"), // Display name
+  email: text("email"), // Optional, for future features
+  role: text("role").notNull().$type<"full_admin" | "admin" | "auditor" | "regular_user">().default("regular_user"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
-  password: true,
+  name: true,
+  email: true,
+  role: true,
+});
+
+export const loginSchema = z.object({
+  username: z.string().min(3, "Username minimal 3 karakter"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type LoginCredentials = z.infer<typeof loginSchema>;
 
 // Branches table
 export const branches = pgTable("branches", {
@@ -32,6 +45,9 @@ export type Branch = typeof branches.$inferSelect;
 // Audits table
 export const audits = pgTable("audits", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ownerId: varchar("owner_id"), // Links to users.id - who owns this audit (nullable for backward compatibility)
+  createdById: varchar("created_by_id"), // Links to users.id - who created this audit (nullable for backward compatibility)
+  updatedAt: timestamp("updated_at"),
   
   // Identity
   nama: text("nama").notNull(),
