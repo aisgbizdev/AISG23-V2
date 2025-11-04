@@ -156,10 +156,46 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
             <Loader2 className="w-6 h-6 animate-spin" />
           </div>
         ) : history.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground px-4">
-            <MessageSquare className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm font-medium mb-1">Belum ada percakapan</p>
-            <p className="text-xs">Mulai diskusi dengan AI Coach untuk insight lebih dalam tentang hasil audit Anda</p>
+          <div className="flex flex-col items-start justify-start h-full px-4 py-6">
+            <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg p-4 sm:p-5 mb-4">
+              <div className="flex items-start gap-3 mb-3">
+                <MessageSquare className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                <div>
+                  <h4 className="font-semibold text-sm sm:text-base text-foreground mb-2">
+                    Selamat datang di AI Coach! 👋
+                  </h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-3">
+                    Sebelum kita mulai, mohon perkenalkan diri Anda terlebih dahulu agar diskusi lebih personal dan terarah:
+                  </p>
+                  <div className="space-y-2 text-xs sm:text-sm">
+                    <div className="flex items-start gap-2">
+                      <span className="text-blue-500 font-bold shrink-0">1.</span>
+                      <span className="text-muted-foreground">Siapa <strong className="text-foreground">nama</strong> Anda?</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-blue-500 font-bold shrink-0">2.</span>
+                      <span className="text-muted-foreground">Apa <strong className="text-foreground">posisi/jabatan</strong> Anda?</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-blue-500 font-bold shrink-0">3.</span>
+                      <div className="text-muted-foreground">
+                        Chat ini untuk <strong className="text-foreground">siapa</strong>?
+                        <ul className="ml-4 mt-1 space-y-1 list-disc">
+                          <li>Untuk <strong className="text-foreground">diri sendiri</strong> (refleksi performa Anda)</li>
+                          <li>Untuk <strong className="text-foreground">bawahan/team</strong> Anda (sebutkan namanya)</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-4 font-medium">
+                    💡 Contoh: "Halo, saya Budi, posisi SBM. Chat ini untuk diskusi performa bawahan saya, Andi (BC)."
+                  </p>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground text-center w-full">
+              Setelah perkenalan, Anda bisa bertanya apa saja tentang audit, strategi improvement, atau coaching! 🚀
+            </p>
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4 pb-4">
