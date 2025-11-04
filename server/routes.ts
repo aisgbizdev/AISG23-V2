@@ -5,6 +5,8 @@ import { insertAuditSchema, insertChatMessageSchema } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import gemini from "./gemini";
+import openai from "./openai";
+import { generateKnowledgeBasedResponse } from "./knowledge-base";
 import { generateAuditPDF } from "./pdf-generator";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -66,6 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /api/chat - Send chat message and get AI response
+  // 3-Source AI System: ChatGPT (OpenAI) → Gemini → Internal Knowledge Base
   app.post("/api/chat", async (req, res) => {
     try {
       const schema = z.object({
@@ -89,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const history = await storage.getChatHistory(auditId);
       
-      const systemPrompt = `Anda adalah AI coach profesional untuk AISG (Audit Intelligence SG). Anda membantu karyawan memahami hasil audit performa mereka.
+      const systemPrompt = `Anda adalah AI coach profesional untuk AiSG (Audit Intelligence System Growth). Anda membantu karyawan memahami hasil audit performa mereka.
 
 DATA AUDIT:
 - Nama: ${audit.nama}
@@ -108,61 +111,106 @@ TUGAS ANDA:
 
 Jawab dengan concise (2-3 paragraf max), fokus pada value bukan panjang teks.`;
 
-      const chatHistory = history.slice(-10).map(msg => ({
-        role: msg.role === "user" ? "user" : "model",
-        parts: [{ text: msg.content }]
-      }));
-      
-      console.log("[CHAT] Calling Gemini API with messages:", chatHistory.length + 1);
-      const response = await gemini.models.generateContent({
-        model: "gemini-2.5-flash",
-        config: {
-          systemInstruction: systemPrompt,
+      let aiResponse = "";
+      let sourceUsed = "";
+
+      // SOURCE 1: Try OpenAI ChatGPT first (primary)
+      try {
+        console.log("[CHAT] 🎯 Attempting Source 1: OpenAI ChatGPT...");
+        
+        const openaiMessages = [
+          { role: "system" as const, content: systemPrompt },
+          ...history.slice(-10).map(msg => ({
+            role: msg.role as "user" | "assistant",
+            content: msg.content
+          })),
+          { role: "user" as const, content: message }
+        ];
+
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: openaiMessages,
           temperature: 0.7,
-          maxOutputTokens: 500,
-        },
-        contents: [
-          ...chatHistory,
-          {
-            role: "user",
-            parts: [{ text: message }]
+          max_tokens: 500,
+        });
+
+        const responseText = completion.choices[0]?.message?.content;
+        
+        if (responseText && responseText.trim().length > 0) {
+          aiResponse = responseText.trim();
+          sourceUsed = "ChatGPT";
+          console.log("[CHAT] ✅ Source 1 SUCCESS: OpenAI ChatGPT responded");
+        } else {
+          throw new Error("OpenAI returned empty response");
+        }
+      } catch (openaiError) {
+        console.log("[CHAT] ❌ Source 1 FAILED: OpenAI error -", openaiError instanceof Error ? openaiError.message : String(openaiError));
+        
+        // SOURCE 2: Try Gemini as fallback (secondary)
+        try {
+          console.log("[CHAT] 🎯 Attempting Source 2: Google Gemini...");
+          
+          const chatHistory = history.slice(-10).map(msg => ({
+            role: msg.role === "user" ? "user" : "model",
+            parts: [{ text: msg.content }]
+          }));
+          
+          const response = await gemini.models.generateContent({
+            model: "gemini-2.0-flash-exp",
+            systemInstruction: systemPrompt,
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 500,
+            },
+            contents: [
+              ...chatHistory,
+              {
+                role: "user",
+                parts: [{ text: message }]
+              }
+            ]
+          });
+          
+          const geminiText = response.text;
+          
+          if (geminiText && geminiText.trim().length > 0) {
+            aiResponse = geminiText.trim();
+            sourceUsed = "Gemini";
+            console.log("[CHAT] ✅ Source 2 SUCCESS: Gemini responded");
+          } else {
+            throw new Error("Gemini returned empty response");
           }
-        ]
-      });
+        } catch (geminiError) {
+          console.log("[CHAT] ❌ Source 2 FAILED: Gemini error -", geminiError instanceof Error ? geminiError.message : String(geminiError));
+          
+          // SOURCE 3: Use Internal Knowledge Base as last resort (tertiary)
+          console.log("[CHAT] 🎯 Attempting Source 3: Internal Knowledge Base...");
+          aiResponse = generateKnowledgeBasedResponse(message, audit);
+          sourceUsed = "Knowledge Base";
+          console.log("[CHAT] ✅ Source 3 SUCCESS: Knowledge Base responded");
+        }
+      }
       
-      console.log("[CHAT] Gemini response received:", {
-        text: response.text?.substring(0, 100)
-      });
-      
-      const aiResponse = response.text || "Maaf, saya tidak dapat merespon saat ini.";
+      // Add source indicator to response
+      const finalResponse = `${aiResponse}\n\n_[Answered by: ${sourceUsed}]_`;
       
       await storage.createChatMessage({
         auditId,
         role: "assistant",
-        content: aiResponse
+        content: finalResponse
       });
       
-      res.json({ response: aiResponse });
+      res.json({ response: finalResponse, source: sourceUsed });
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
         res.status(400).json({ error: "Validation error", details: validationError.message });
       } else {
         console.error("Error in chat:", error);
-        
-        // Check if it's a Gemini rate limit error
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage.includes("rate") || errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
-          res.status(429).json({ 
-            error: "AI service rate limit",
-            userMessage: "Maaf, layanan AI sedang mencapai batas penggunaan. Mohon coba lagi dalam beberapa saat." 
-          });
-        } else {
-          res.status(500).json({ 
-            error: "Internal server error",
-            userMessage: "Maaf, terjadi kesalahan saat menghubungi AI. Silakan coba lagi." 
-          });
-        }
+        res.status(500).json({ 
+          error: "Internal server error",
+          userMessage: "Maaf, terjadi kesalahan sistem. Silakan coba lagi." 
+        });
       }
     }
   });
