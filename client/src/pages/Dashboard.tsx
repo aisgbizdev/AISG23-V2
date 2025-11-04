@@ -126,7 +126,7 @@ export default function Dashboard() {
                 <span className="text-red-400 font-semibold">🚀 **AiSG – Audit Intelligence System Growth**</span> A breakthrough AI system that helps you discover hidden potential & elevate performance.
               </p>
               <p className="text-xs sm:text-sm text-gray-400 mt-3">
-                **Powered by Newsmaker.id × NM23 Ai × ChatGPT–OpenAI**
+                **Powered by Newsmaker.id × AiSG Team × ChatGPT–OpenAI**
               </p>
             </div>
           </div>
