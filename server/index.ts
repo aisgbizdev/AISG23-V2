@@ -5,6 +5,9 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+// Trust proxy (Replit uses proxy)
+app.set('trust proxy', 1);
+
 // Session configuration
 declare module "express-session" {
   interface SessionData {
@@ -24,7 +27,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === "production", // HTTPS only in production
+    secure: true, // Always use HTTPS (Replit always uses HTTPS)
     httpOnly: true, // Prevent XSS
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: "lax", // CSRF protection

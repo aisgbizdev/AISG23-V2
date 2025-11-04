@@ -8,7 +8,8 @@ AiSG (Audit Intelligence System Growth) is a corporate enterprise performance au
 
 **🔐 AUTHENTICATION & AUTHORIZATION SYSTEM (COMPLETE):**
 - ✅ **Full Enterprise Authentication**: Username/password login with bcrypt hashing (SALT_ROUNDS=10)
-- ✅ **Session Management**: express-session with HttpOnly cookies, 24-hour expiry, CSRF protection (sameSite: lax)
+- ✅ **Session Management**: express-session with HttpOnly cookies, 24-hour expiry, CSRF protection (sameSite: lax), proxy trust for Replit environment
+- ✅ **Mobile Browser Support**: Secure cookies enabled for HTTPS, session persistence across all browsers including mobile
 - ✅ **Role-Based Access Control (RBAC)**: 4 roles with hierarchy (Full Admin → Admin → Auditor → Regular User)
 - ✅ **Self-Registration System**: Public registration page where regular users can create their own accounts
 - ✅ **Security Question-Based Password Reset**: 3-step password recovery flow (username → verify security question → reset password)
