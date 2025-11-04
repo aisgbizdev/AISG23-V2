@@ -155,23 +155,14 @@ Jawab dengan concise (2-3 paragraf max), fokus pada value bukan panjang teks.`;
             parts: [{ text: msg.content }]
           }));
           
+          const fullPrompt = `${systemPrompt}\n\nUser Question: ${message}`;
+          
           const result = await gemini.models.generateContent({
             model: "gemini-2.0-flash-exp",
-            systemInstruction: systemPrompt,
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 500,
-            },
-            contents: [
-              ...chatHistory,
-              {
-                role: "user",
-                parts: [{ text: message }]
-              }
-            ]
+            contents: fullPrompt
           });
           
-          const geminiText = result.response?.text();
+          const geminiText = result.text;
           
           if (geminiText && geminiText.trim().length > 0) {
             aiResponse = geminiText.trim();
@@ -191,8 +182,8 @@ Jawab dengan concise (2-3 paragraf max), fokus pada value bukan panjang teks.`;
         }
       }
       
-      // Add source indicator to response
-      const finalResponse = `${aiResponse}\n\n_[Answered by: ${sourceUsed}]_`;
+      // Add AiSG Team signature to response
+      const finalResponse = `${aiResponse}\n\n**By AiSG Team**`;
       
       await storage.createChatMessage({
         auditId,
