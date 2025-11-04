@@ -256,7 +256,7 @@ export default function NewAudit() {
                       <FormItem>
                         <FormLabel>Cabang</FormLabel>
                         <FormControl>
-                          <Input placeholder="Contoh: KPF Jakarta Pusat" {...field} data-testid="input-cabang" />
+                          <Input placeholder="Contoh: XYZ Jakarta" {...field} data-testid="input-cabang" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
