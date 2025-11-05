@@ -30,7 +30,9 @@ AiSG (Audit Intelligence System Growth) is a corporate enterprise performance au
 ### Backend Architecture
 
 **Runtime**: Node.js with Express.js.
-**API Design**: RESTful JSON API for audit management and AI chat.
+**API Design**: RESTful JSON API for audit management, AI chat, and admin operations.
+**Admin Endpoints**: `/api/dashboard/summary` (global stats + recent audits), `/api/admin/users` (all users), `/api/admin/users/inactive` (users >90 days without audits), `/api/admin/users/:id` (delete user), `/api/admin/audit-log` (all audits including soft-deleted).
+**Soft-Delete Endpoints**: `PATCH /api/audit/:id/soft-delete` (user soft-delete), `DELETE /api/audit/:id` (admin permanent delete).
 **Business Logic Layer**: Centralized, handling Reality Score Calculation, Performance/Behavioral/Final Zone Analysis, Employee Profile Generation, SWOT Analysis, ProDem Recommendation, Action Plan 30-60-90, EWS, and the Magic Section.
 **AI Chat Architecture**: A 3-source fallback system: Primary (OpenAI ChatGPT), Secondary (Google Gemini), Tertiary (Internal Knowledge Base for guaranteed responses).
 **Knowledge Base**: Covers 15+ business topics including leadership, teamwork, sales, recruitment, planning, and SWOT analysis.
@@ -40,8 +42,9 @@ AiSG (Audit Intelligence System Growth) is a corporate enterprise performance au
 ### Data Storage
 
 **Database**: PostgreSQL 16 (Neon serverless) using Drizzle ORM.
-**Schema Design**: Includes `users`, `branches`, `audits` (core table with employee, performance, team structure, assessment, and report data), and `chatMessages` tables. Uses JSONB for flexible data, UUID primary keys, and denormalized audit results.
+**Schema Design**: Includes `users`, `branches`, `audits` (core table with employee, performance, team structure, assessment, and report data with soft-delete support via deletedAt/deletedById/deletedReason columns), and `chatMessages` tables. Uses JSONB for flexible data, UUID primary keys, and denormalized audit results.
 **Migration Strategy**: Drizzle Kit for schema migrations.
+**Soft-Delete Architecture**: Regular users soft-delete audits (hidden from their view but visible to admins), admins can permanently delete. Storage layer filters non-deleted records by default with methods for soft/hard delete operations.
 
 ### Authentication & Authorization
 
@@ -50,7 +53,8 @@ AiSG (Audit Intelligence System Growth) is a corporate enterprise performance au
 - **Password Security**: bcrypt hashing (SALT_ROUNDS=10).
 - **Middleware**: requireAuth, requireRole for protected routes and API endpoints.
 - **Role Hierarchy**: 4 levels (Full Admin, Admin, Auditor, Regular User) with specific permissions.
-- **Ownership Model**: Users access their own audits, Admins access all audits.
+- **Data Visibility Model**: Global dashboard shows aggregate stats and recent audits from all users. Regular users can soft-delete their own audits (hidden from them, visible to admins). Admins have full visibility including soft-deleted audits and can permanently delete.
+- **User Management**: Admin panel displays all registered users with inactive user detection (>90 days since registration with no audit activity). Admins can delete users via dedicated endpoints.
 - **Security Features**: CSRF protection, secure cookies, password/username constraints.
 
 ## External Dependencies
