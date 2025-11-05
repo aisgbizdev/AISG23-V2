@@ -35,11 +35,13 @@ app.use(session({
   secret: process.env.SESSION_SECRET || "aisg-secret-key-change-in-production",
   resave: false,
   saveUninitialized: false,
+  proxy: true, // Trust proxy for cookie setting
   cookie: {
-    secure: true, // Always use HTTPS (Replit always uses HTTPS)
+    secure: process.env.NODE_ENV === "production", // HTTPS in production
     httpOnly: true, // Prevent XSS
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: "lax", // CSRF protection
+    path: "/", // Available on all paths
   },
 }));
 
