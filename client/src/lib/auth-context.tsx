@@ -25,7 +25,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Fetch current user on mount
   const refetchUser = async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", {
+        credentials: "include", // Include cookies in request
+      });
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
@@ -48,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include", // Include cookies in request
       body: JSON.stringify({ username, password }),
     });
 
@@ -62,7 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch("/api/auth/logout", { 
+        method: "POST",
+        credentials: "include", // Include cookies in request
+      });
     } finally {
       setUser(null);
     }
