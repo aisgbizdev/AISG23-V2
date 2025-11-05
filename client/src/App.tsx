@@ -129,7 +129,7 @@ function AppHeader() {
                   variant={location === "/admin" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setLocation("/admin")}
-                  className="gap-1.5 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:border-purple-500/40"
+                  className="gap-1.5"
                 >
                   <Shield className="w-4 h-4" />
                   Admin
