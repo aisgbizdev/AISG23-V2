@@ -246,3 +246,42 @@ export function canAccessAudit(
   // Auditor and regular users can only access their own
   return userId === auditOwnerId;
 }
+
+/**
+ * Ensure superadmin user exists
+ * This runs on server startup to guarantee superadmin exists in both dev and production databases
+ */
+export async function ensureSuperadminExists(): Promise<void> {
+  try {
+    // Check if superadmin already exists
+    const [existingAdmin] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, "superadmin"))
+      .limit(1);
+    
+    if (existingAdmin) {
+      console.log("✅ Superadmin user already exists");
+      return;
+    }
+    
+    // Create superadmin if not exists
+    console.log("🔧 Creating superadmin user...");
+    await createUser({
+      username: "superadmin",
+      password: "vito1007",
+      name: "AiSG Admin Panel",
+      email: "admin@aisg.com",
+      role: "full_admin",
+      securityQuestion: "Nama aplikasi ini?",
+      securityAnswer: "AiSG",
+    });
+    
+    console.log("✅ Superadmin user created successfully!");
+    console.log("   Username: superadmin");
+    console.log("   Password: vito1007");
+  } catch (error) {
+    console.error("❌ Failed to ensure superadmin exists:", error);
+    // Don't throw - let the app continue even if this fails
+  }
+}
