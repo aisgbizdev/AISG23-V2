@@ -3,12 +3,25 @@
  * Shows all audits from all users with creator info and PDF download
  */
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, User, Calendar, Building, TrendingUp, Award } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Download, FileText, User, Calendar, Building, TrendingUp, Award, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { id as indonesian } from "date-fns/locale";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 
 interface AuditLogEntry {
   id: string;
@@ -30,9 +43,56 @@ interface AuditLogEntry {
 }
 
 export default function AdminAuditLog() {
+  const { toast } = useToast();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [auditToDelete, setAuditToDelete] = useState<AuditLogEntry | null>(null);
+  
   const { data: audits = [], isLoading } = useQuery<AuditLogEntry[]>({
     queryKey: ["/api/admin/audit-log"],
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (auditId: string) => {
+      const response = await fetch(`/api/audit/${auditId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.userMessage || "Gagal menghapus audit");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/audit-log"] });
+      toast({
+        title: "Audit berhasil dihapus",
+        description: "Data audit telah dihapus secara permanen",
+      });
+      setDeleteDialogOpen(false);
+      setAuditToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Gagal menghapus audit",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteClick = (audit: AuditLogEntry) => {
+    setAuditToDelete(audit);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (auditToDelete) {
+      deleteMutation.mutate(auditToDelete.id);
+    }
+  };
 
   const getZoneColor = (zone: string | null) => {
     if (!zone) return "bg-gray-500/20 text-gray-400";
@@ -162,6 +222,16 @@ export default function AdminAuditLog() {
                       <Download className="w-4 h-4" />
                       Download PDF
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(audit)}
+                      className="gap-2 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50"
+                      disabled={deleteMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Hapus
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -169,6 +239,41 @@ export default function AdminAuditLog() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-gray-900 border-gray-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-400" />
+              Konfirmasi Hapus Audit
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400 space-y-2">
+              <p>
+                Apakah Anda yakin ingin menghapus audit untuk <span className="font-semibold text-white">{auditToDelete?.nama}</span>?
+              </p>
+              <p className="text-red-400 font-medium">
+                ⚠️ Data akan dihapus secara permanen dan tidak dapat dikembalikan!
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              className="bg-gray-800 border-gray-700 hover:bg-gray-700"
+              disabled={deleteMutation.isPending}
+            >
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-500 hover:bg-red-600 text-white"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Menghapus..." : "Ya, Hapus"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
