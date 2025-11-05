@@ -119,15 +119,12 @@ export default function AuditDetail() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">Audit Report</h1>
                 <Badge className={`${getProfilBadge(audit.profil)} border shrink-0`}>
                   {audit.profil}
                 </Badge>
               </div>
-              <code className="text-xs sm:text-sm font-mono text-muted-foreground break-all" data-testid="detail-audit-id">
-                {audit.id}
-              </code>
             </div>
           </div>
           <Button 

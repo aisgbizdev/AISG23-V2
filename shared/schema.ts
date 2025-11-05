@@ -214,17 +214,17 @@ export const insertAuditSchema = createInsertSchema(audits, {
   naTimQ3: z.number().int().nonnegative(),
   naTimQ4: z.number().int().nonnegative(),
   
-  // Quarterly margins - Personal
-  marginPribadiQ1: z.number().int().nonnegative(),
-  marginPribadiQ2: z.number().int().nonnegative(),
-  marginPribadiQ3: z.number().int().nonnegative(),
-  marginPribadiQ4: z.number().int().nonnegative(),
+  // Quarterly margins - Personal (allow negative for withdrawals)
+  marginPribadiQ1: z.number().int(),
+  marginPribadiQ2: z.number().int(),
+  marginPribadiQ3: z.number().int(),
+  marginPribadiQ4: z.number().int(),
   
-  // Quarterly Nasabah - Personal
-  nasabahPribadiQ1: z.number().int().nonnegative(),
-  nasabahPribadiQ2: z.number().int().nonnegative(),
-  nasabahPribadiQ3: z.number().int().nonnegative(),
-  nasabahPribadiQ4: z.number().int().nonnegative(),
+  // Quarterly Nasabah - Personal (allow negative for withdrawals)
+  nasabahPribadiQ1: z.number().int(),
+  nasabahPribadiQ2: z.number().int(),
+  nasabahPribadiQ3: z.number().int(),
+  nasabahPribadiQ4: z.number().int(),
   
   // Team structure
   jumlahBC: z.number().int().nonnegative(),
