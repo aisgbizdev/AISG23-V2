@@ -170,6 +170,11 @@ export default function AdminAuditLog() {
                         <h3 className="text-xl font-bold flex items-center gap-2">
                           <User className="w-5 h-5 text-purple-400" />
                           {audit.nama}
+                          {audit.deletedAt && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-gray-500/20 text-gray-400 border border-gray-500/30">
+                              🗑️ Deleted
+                            </span>
+                          )}
                         </h3>
                         <p className="text-sm text-muted-foreground mt-1">
                           {audit.jabatan} • {audit.cabang}
@@ -233,7 +238,7 @@ export default function AdminAuditLog() {
                       disabled={deleteMutation.isPending}
                     >
                       <Trash2 className="w-4 h-4" />
-                      Hapus
+                      {audit.deletedAt ? "Permanent Delete" : "Hapus"}
                     </Button>
                   </div>
                 </div>
@@ -255,9 +260,15 @@ export default function AdminAuditLog() {
               <p>
                 Apakah Anda yakin ingin menghapus audit untuk <span className="font-semibold text-white">{auditToDelete?.nama}</span>?
               </p>
-              <p className="text-red-400 font-medium">
-                ⚠️ Data akan dihapus secara permanen dan tidak dapat dikembalikan!
-              </p>
+              {auditToDelete?.deletedAt ? (
+                <p className="text-red-400 font-medium">
+                  ⚠️ Audit ini sudah dihapus oleh user. Permanent delete akan menghapus data dari database secara permanen dan tidak dapat dikembalikan!
+                </p>
+              ) : (
+                <p className="text-red-400 font-medium">
+                  ⚠️ Data akan dihapus secara permanen dan tidak dapat dikembalikan!
+                </p>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

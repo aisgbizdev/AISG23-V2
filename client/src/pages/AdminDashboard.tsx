@@ -47,8 +47,18 @@ export default function AdminDashboard() {
   const { data: users, isLoading } = useQuery<Array<Omit<User, "password">>>({
     queryKey: ["users"],
     queryFn: async () => {
-      const res = await fetch("/api/users");
+      const res = await fetch("/api/admin/users");
       if (!res.ok) throw new Error("Failed to fetch users");
+      return res.json();
+    },
+  });
+
+  // Fetch inactive users (>90 days, no audits)
+  const { data: inactiveUsers = [] } = useQuery<Array<Omit<User, "password">>>({
+    queryKey: ["inactiveUsers"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/users/inactive");
+      if (!res.ok) throw new Error("Failed to fetch inactive users");
       return res.json();
     },
   });
@@ -94,7 +104,7 @@ export default function AdminDashboard() {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const res = await fetch(`/api/users/${userId}`, {
+      const res = await fetch(`/api/admin/users/${userId}`, {
         method: "DELETE",
       });
       if (!res.ok) {
@@ -105,6 +115,7 @@ export default function AdminDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["inactiveUsers"] });
       toast({
         title: "✅ User Deleted",
         description: "User berhasil dihapus",
@@ -240,6 +251,42 @@ export default function AdminDashboard() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Inactive Users Warning */}
+      {inactiveUsers.length > 0 && (
+        <Alert className="border-yellow-500/30 bg-yellow-500/10">
+          <AlertDescription className="flex items-start gap-3">
+            <span className="text-yellow-500 text-xl">⚠️</span>
+            <div className="space-y-2 flex-1">
+              <p className="font-semibold text-yellow-400">
+                {inactiveUsers.length} user{inactiveUsers.length > 1 ? 's' : ''} terdaftar lebih dari 90 hari tanpa aktivitas audit
+              </p>
+              <div className="space-y-2">
+                {inactiveUsers.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between text-sm bg-gray-900/50 p-3 rounded-lg border border-yellow-500/20">
+                    <div>
+                      <span className="text-white font-medium">{u.name}</span>
+                      <span className="text-gray-400"> (@{u.username})</span>
+                      <span className="text-gray-500 ml-2">
+                        • Registered {new Date(u.createdAt).toLocaleDateString("id-ID")}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteUser(u.id, u.username)}
+                      className="gap-2 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Users List */}
       <Card className="bg-gray-900/50 border-gray-800">
