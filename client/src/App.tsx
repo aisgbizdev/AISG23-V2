@@ -51,20 +51,20 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/forgot-password" component={ForgotPassword} />
       
-      {/* Protected routes */}
+      {/* Protected routes - Order matters! More specific routes first */}
       <Route path="/">
         <ProtectedRoute>
           <Dashboard />
         </ProtectedRoute>
       </Route>
-      <Route path="/admin">
-        <ProtectedRoute>
-          <AdminDashboard />
-        </ProtectedRoute>
-      </Route>
       <Route path="/admin/audit-log">
         <ProtectedRoute>
           <AdminAuditLog />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin">
+        <ProtectedRoute>
+          <AdminDashboard />
         </ProtectedRoute>
       </Route>
       <Route path="/audit/new">
