@@ -13,8 +13,9 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminAuditLog from "@/pages/AdminAuditLog";
 import NotFound from "@/pages/not-found";
-import { ClipboardList, MessageCircle, LogOut, UserCircle, Shield, Home } from "lucide-react";
+import { ClipboardList, MessageCircle, LogOut, UserCircle, Shield, Home, FileText } from "lucide-react";
 import type { ReactNode } from "react";
 
 // Protected Route Component
@@ -56,6 +57,11 @@ function Router() {
       <Route path="/admin">
         <ProtectedRoute>
           <AdminDashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin/audit-log">
+        <ProtectedRoute>
+          <AdminAuditLog />
         </ProtectedRoute>
       </Route>
       <Route path="/audit/new">
@@ -114,16 +120,27 @@ function AppHeader() {
               <Home className="w-4 h-4" />
               Home
             </Button>
-            {user.role === "full_admin" && (
-              <Button
-                variant={location === "/admin" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setLocation("/admin")}
-                className="gap-1.5 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:border-purple-500/40"
-              >
-                <Shield className="w-4 h-4" />
-                Admin
-              </Button>
+            {(user.role === "full_admin" || user.role === "admin") && (
+              <>
+                <Button
+                  variant={location === "/admin" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setLocation("/admin")}
+                  className="gap-1.5 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:border-purple-500/40"
+                >
+                  <Shield className="w-4 h-4" />
+                  Admin
+                </Button>
+                <Button
+                  variant={location === "/admin/audit-log" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setLocation("/admin/audit-log")}
+                  className="gap-1.5"
+                >
+                  <FileText className="w-4 h-4" />
+                  Audit Log
+                </Button>
+              </>
             )}
           </div>
         </div>

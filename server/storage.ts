@@ -14,6 +14,7 @@ export interface IStorage {
   createAudit(data: InsertAudit): Promise<Audit>;
   getAudit(id: string): Promise<Audit | undefined>;
   getAllAudits(): Promise<Audit[]>;
+  getAuditsWithCreators(): Promise<any[]>;
   getAuditsByName(nama: string): Promise<Audit[]>;
   deleteAudit(id: string): Promise<void>;
   
@@ -61,6 +62,32 @@ export class DbStorage implements IStorage {
 
   async getAllAudits(): Promise<Audit[]> {
     const result = await db.select().from(audits).orderBy(desc(audits.createdAt));
+    return result;
+  }
+
+  async getAuditsWithCreators(): Promise<any[]> {
+    const result = await db
+      .select({
+        id: audits.id,
+        nama: audits.nama,
+        jabatan: audits.jabatan,
+        cabang: audits.cabang,
+        zonaKinerja: audits.zonaKinerja,
+        zonaPerilaku: audits.zonaPerilaku,
+        zonaFinal: audits.zonaFinal,
+        totalSelfScore: audits.totalSelfScore,
+        totalRealityScore: audits.totalRealityScore,
+        prodemRekomendasi: audits.prodemRekomendasi,
+        createdAt: audits.createdAt,
+        updatedAt: audits.updatedAt,
+        ownerId: audits.ownerId,
+        createdById: audits.createdById,
+        ownerName: users.name,
+        ownerUsername: users.username,
+      })
+      .from(audits)
+      .leftJoin(users, eq(audits.ownerId, users.id))
+      .orderBy(desc(audits.createdAt));
     return result;
   }
 

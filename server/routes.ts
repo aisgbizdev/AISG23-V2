@@ -9,7 +9,7 @@ import openai from "./openai";
 import { generateKnowledgeBasedResponse } from "./knowledge-base";
 import { generateAuditPDF } from "./pdf-generator";
 import { registerAuthRoutes } from "./auth-routes";
-import { requireAuth, requireFullAdmin } from "./middleware";
+import { requireAuth, requireFullAdmin, requireAdmin } from "./middleware";
 import { canAccessAudit } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -67,6 +67,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error("Error fetching audits:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // GET /api/admin/audit-log - Get all audits with creator info (Admin only)
+  app.get("/api/admin/audit-log", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const auditsWithCreators = await storage.getAuditsWithCreators();
+      res.json(auditsWithCreators);
+    } catch (error) {
+      console.error("Error fetching audit log:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
