@@ -4,9 +4,19 @@
 
 AiSG (Audit Intelligence System Growth) is a corporate enterprise performance auditing platform designed to evaluate employee performance and leadership using a standardized 18 Pilar framework. The system processes quarterly performance metrics and behavioral assessments to generate comprehensive audit reports with ProDem (Promotion-Demotion) recommendations. Key capabilities include a 5-step multi-form for data input, 12-section professional audit reports, **3-Source AI Chat System** (ChatGPT → Gemini → Internal Knowledge Base), and PDF export functionality. It also features a "Magic Section" for personalized motivational content. The system is fully operational and production-ready with **modern Gen-Z UI/UX design**, supporting a quarterly-based audit system with a Reality Score Calculator.
 
-## Recent Changes (November 4, 2025)
+## Recent Changes
 
-**🔐 AUTHENTICATION & AUTHORIZATION SYSTEM (COMPLETE):**
+**📊 ADMIN AUDIT LOG SYSTEM (November 5, 2025):**
+- ✅ **PostgreSQL Session Store**: Migrated from MemoryStore to connect-pg-simple for reliable session persistence across server restarts and mobile browsers
+- ✅ **Admin Audit Log Page**: `/admin/audit-log` - Complete activity log showing ALL audits from ALL users
+- ✅ **Audit Log Features**: Creator info (username, name), timestamps, zones (Kinerja, Perilaku, Final), ProDem recommendations, Reality Score averages
+- ✅ **PDF Download Per Audit**: Admin can download PDF for any user's audit directly from the log
+- ✅ **Admin Navigation**: Added "Audit Log" link in header for Admin and Full Admin roles
+- ✅ **Backend API**: GET /api/admin/audit-log with requireAdmin middleware, joins audits + users tables
+- ✅ **Secure Session Config**: Trust proxy for Replit HTTPS, secure cookies, explicit session.save() callbacks
+- ✅ **Removed Debug Logging**: Clean production-ready middleware without console.log spam
+
+**🔐 AUTHENTICATION & AUTHORIZATION SYSTEM (November 4, 2025):**
 - ✅ **Full Enterprise Authentication**: Username/password login with bcrypt hashing (SALT_ROUNDS=10)
 - ✅ **Session Management**: express-session with HttpOnly cookies, 24-hour expiry, CSRF protection (sameSite: lax), proxy trust for Replit environment
 - ✅ **Mobile Browser Support**: Secure cookies enabled for HTTPS, session persistence across all browsers including mobile
