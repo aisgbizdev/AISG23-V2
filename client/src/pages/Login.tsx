@@ -29,7 +29,15 @@ export default function Login() {
 
     try {
       await login(username, password);
-      setLocation("/"); // Redirect to home after successful login
+      
+      // Check if there's a saved return URL
+      const returnUrl = sessionStorage.getItem("returnUrl");
+      if (returnUrl && returnUrl !== "/login") {
+        sessionStorage.removeItem("returnUrl");
+        setLocation(returnUrl);
+      } else {
+        setLocation("/"); // Default to home
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login gagal");
     } finally {

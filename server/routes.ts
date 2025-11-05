@@ -474,8 +474,8 @@ Remember: Kamu bukan AI assistant, kamu COACH BERPENGALAMAN yang genuinely care 
     }
   });
 
-  // DELETE /api/audit/:id - Delete an audit (Protected - Full Admin only)
-  app.delete("/api/audit/:id", requireAuth, requireFullAdmin, async (req, res) => {
+  // DELETE /api/audit/:id - Delete an audit (Protected - Admin only)
+  app.delete("/api/audit/:id", requireAuth, requireAdmin, async (req, res) => {
     try {
       const audit = await storage.getAudit(req.params.id);
       

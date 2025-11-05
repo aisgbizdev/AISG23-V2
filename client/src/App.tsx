@@ -21,6 +21,7 @@ import type { ReactNode } from "react";
 // Protected Route Component
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
+  const [location] = useLocation();
 
   if (isLoading) {
     return (
@@ -34,6 +35,8 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   }
 
   if (!user) {
+    // Save the intended destination before redirecting to login
+    sessionStorage.setItem("returnUrl", location);
     return <Redirect to="/login" />;
   }
 
