@@ -11,9 +11,12 @@ AiSG (Audit Intelligence System Growth) is a corporate enterprise performance au
 - ✅ **Admin Audit Log Page**: `/admin/audit-log` - Complete activity log showing ALL audits from ALL users
 - ✅ **Audit Log Features**: Creator info (username, name), timestamps, zones (Kinerja, Perilaku, Final), ProDem recommendations, Reality Score averages
 - ✅ **PDF Download Per Audit**: Admin can download PDF for any user's audit directly from the log
+- ✅ **Delete Audit Functionality**: Admin can permanently delete audits with confirmation dialog, data removed from database
 - ✅ **Admin Navigation**: Added "Audit Log" link in header for Admin and Full Admin roles
-- ✅ **Backend API**: GET /api/admin/audit-log with requireAdmin middleware, joins audits + users tables
+- ✅ **Backend API**: GET /api/admin/audit-log with requireAdmin middleware, joins audits + users tables. DELETE /api/audit/:id for permanent deletion
 - ✅ **Secure Session Config**: Trust proxy for Replit HTTPS, secure cookies, explicit session.save() callbacks
+- ✅ **Smart Login Redirect**: After login, users are redirected back to their intended destination (e.g., /admin) instead of always going to home
+- ✅ **Clickable Logo Header**: Logo and "AiSG" text in header are clickable to return home, with visible hover effects
 - ✅ **Removed Debug Logging**: Clean production-ready middleware without console.log spam
 
 **🔐 AUTHENTICATION & AUTHORIZATION SYSTEM (November 4, 2025):**
