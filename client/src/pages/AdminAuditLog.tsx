@@ -36,6 +36,9 @@ interface AuditLogEntry {
   prodemRekomendasi: any;
   createdAt: string;
   updatedAt: string | null;
+  deletedAt: string | null;
+  deletedById: string | null;
+  deletedReason: string | null;
   ownerId: string | null;
   createdById: string | null;
   ownerName: string | null;

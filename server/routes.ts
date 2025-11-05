@@ -52,6 +52,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/dashboard/summary - Get global dashboard stats (Protected)
+  app.get("/api/dashboard/summary", requireAuth, async (req, res) => {
+    try {
+      const allAudits = await storage.getAllAudits(false); // Non-deleted only
+      
+      // Calculate global stats
+      const totalAudits = allAudits.length;
+      const uniqueUsers = new Set(allAudits.map(a => a.ownerId).filter(Boolean)).size;
+      const zonaHijauCount = allAudits.filter(a => a.zonaFinal === "hijau").length;
+      const zonaHijauPercentage = totalAudits > 0 
+        ? ((zonaHijauCount / totalAudits) * 100).toFixed(1)
+        : "0.0";
+      
+      // Get 3 most recent audits (global)
+      const recentAudits = allAudits.slice(0, 3).map(audit => ({
+        id: audit.id,
+        nama: audit.nama,
+        jabatan: audit.jabatan,
+        cabang: audit.cabang,
+        zonaKinerja: audit.zonaKinerja,
+        zonaPerilaku: audit.zonaPerilaku,
+        zonaFinal: audit.zonaFinal,
+        createdAt: audit.createdAt,
+      }));
+      
+      res.json({
+        totalAudits,
+        uniqueUsers,
+        zonaHijauPercentage,
+        recentAudits,
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard summary:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // GET /api/audits - Get all audits (Protected with ownership filter)
   app.get("/api/audits", requireAuth, async (req, res) => {
     try {
@@ -71,10 +108,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // GET /api/admin/audit-log - Get all audits with creator info (Admin only)
+  // GET /api/admin/audit-log - Get all audits with creator info (Admin only, includes soft-deleted)
   app.get("/api/admin/audit-log", requireAuth, requireAdmin, async (req, res) => {
     try {
-      const auditsWithCreators = await storage.getAuditsWithCreators();
+      // Admin can see all audits including soft-deleted ones
+      const auditsWithCreators = await storage.getAuditsWithCreators(true);
       res.json(auditsWithCreators);
     } catch (error) {
       console.error("Error fetching audit log:", error);
@@ -474,7 +512,40 @@ Remember: Kamu bukan AI assistant, kamu COACH BERPENGALAMAN yang genuinely care 
     }
   });
 
-  // DELETE /api/audit/:id - Delete an audit (Protected - Admin only)
+  // PATCH /api/audit/:id/soft-delete - Soft delete audit (Protected - User can delete own audit)
+  app.patch("/api/audit/:id/soft-delete", requireAuth, async (req, res) => {
+    try {
+      const audit = await storage.getAudit(req.params.id);
+      
+      if (!audit) {
+        res.status(404).json({ error: "Audit not found" });
+        return;
+      }
+      
+      // Check access permission (user can delete their own audit)
+      if (!canAccessAudit(req.user!.role, req.user!.id, audit.ownerId)) {
+        res.status(403).json({ 
+          error: "Forbidden", 
+          userMessage: "Anda tidak memiliki akses ke audit ini" 
+        });
+        return;
+      }
+      
+      // Soft delete with user info
+      await storage.softDeleteAudit(
+        req.params.id, 
+        req.user!.id, 
+        "user_delete"
+      );
+      
+      res.json({ success: true, message: "Audit berhasil dihapus" });
+    } catch (error) {
+      console.error("Error soft-deleting audit:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // DELETE /api/audit/:id - Permanently delete an audit (Admin only - hard delete)
   app.delete("/api/audit/:id", requireAuth, requireAdmin, async (req, res) => {
     try {
       const audit = await storage.getAudit(req.params.id);
@@ -484,10 +555,79 @@ Remember: Kamu bukan AI assistant, kamu COACH BERPENGALAMAN yang genuinely care 
         return;
       }
       
-      await storage.deleteAudit(req.params.id);
-      res.json({ success: true, message: "Audit deleted successfully" });
+      await storage.hardDeleteAudit(req.params.id);
+      res.json({ success: true, message: "Audit permanently deleted" });
     } catch (error) {
-      console.error("Error deleting audit:", error);
+      console.error("Error hard-deleting audit:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // GET /api/admin/users - Get all users (Admin only)
+  app.get("/api/admin/users", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // GET /api/admin/users/inactive - Get inactive users (>90 days, no audits)
+  app.get("/api/admin/users/inactive", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const allAudits = await storage.getAllAudits(false);
+      
+      // Calculate 90 days ago
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      
+      // Find inactive users
+      const inactiveUsers = users.filter(user => {
+        // Skip superadmin
+        if (user.username === "superadmin") return false;
+        
+        // Check if user registered >90 days ago
+        if (new Date(user.createdAt) > ninetyDaysAgo) return false;
+        
+        // Check if user has any audits
+        const userHasAudits = allAudits.some(audit => audit.ownerId === user.id);
+        
+        return !userHasAudits; // Inactive if no audits
+      });
+      
+      res.json(inactiveUsers);
+    } catch (error) {
+      console.error("Error fetching inactive users:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // DELETE /api/admin/users/:id - Delete user (Full Admin only)
+  app.delete("/api/admin/users/:id", requireAuth, requireFullAdmin, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.id);
+      
+      if (!user) {
+        res.status(404).json({ error: "User not found" });
+        return;
+      }
+      
+      // Prevent deleting superadmin
+      if (user.username === "superadmin") {
+        res.status(403).json({ 
+          error: "Forbidden", 
+          userMessage: "Superadmin cannot be deleted" 
+        });
+        return;
+      }
+      
+      await storage.deleteUser(req.params.id);
+      res.json({ success: true, message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

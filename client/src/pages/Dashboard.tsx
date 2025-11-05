@@ -27,16 +27,38 @@ export default function Dashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
+  // Fetch global dashboard summary (all users' stats + 3 recent audits)
+  const { data: summary } = useQuery<{
+    totalAudits: number;
+    uniqueUsers: number;
+    zonaHijauPercentage: string;
+    recentAudits: Array<{
+      id: string;
+      nama: string;
+      jabatan: string;
+      cabang: string;
+      zonaKinerja: string;
+      zonaPerilaku: string;
+      zonaFinal: string;
+      createdAt: Date;
+    }>;
+  }>({
+    queryKey: ["/api/dashboard/summary"],
+  });
+
+  // Fetch user's own audits for full list (with search/filter)
   const { data: audits = [], isLoading } = useQuery<Audit[]>({
     queryKey: ["/api/audits"],
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (auditId: string) => {
-      return apiRequest("DELETE", `/api/audit/${auditId}`);
+      // Use soft-delete (PATCH) instead of hard-delete
+      return apiRequest("PATCH", `/api/audit/${auditId}/soft-delete`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/audits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
       toast({
         title: "Audit dihapus",
         description: "Audit berhasil dihapus dari sistem",
@@ -70,12 +92,12 @@ export default function Dashboard() {
     audit.cabang.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Calculate stats from real data
-  const totalAudits = audits.length;
-  const uniqueUsers = new Set(audits.map(a => a.nama)).size;
-  const avgKinerja = audits.length > 0
-    ? audits.filter(a => a.zonaKinerja === "success").length / audits.length * 100
-    : 0;
+  // Use global stats from summary endpoint (all users)
+  const totalAudits = summary?.totalAudits ?? 0;
+  const uniqueUsers = summary?.uniqueUsers ?? 0;
+  const zonaHijauPercentage = summary?.zonaHijauPercentage ?? "0.0";
+  
+  // Calculate pending reviews from user's own audits
   const pendingReviews = audits.filter(a => 
     a.prodemRekomendasi.recommendation === "Promosi" || 
     a.prodemRekomendasi.recommendation === "Demosi"
@@ -167,7 +189,7 @@ export default function Dashboard() {
           />
           <StatCard
             title="Zona Hijau"
-            value={`${avgKinerja.toFixed(1)}%`}
+            value={`${zonaHijauPercentage}%`}
             icon={TrendingUp}
             data-testid="stat-avg-score"
           />
@@ -199,43 +221,52 @@ export default function Dashboard() {
 
           <div>
             <h2 className="text-xl font-semibold mb-4">
-              {isLoading ? "Memuat data..." : `Audit Terbaru (${filteredAudits.length})`}
+              Audit Terbaru (3)
             </h2>
-            {isLoading ? (
+            {!summary ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="h-64 bg-card rounded-lg animate-pulse" />
                 ))}
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {filteredAudits.map((audit) => (
-                  <AuditCard
-                    key={audit.id}
-                    auditId={audit.id}
-                    nama={audit.nama}
-                    jabatan={audit.jabatan}
-                    cabang={audit.cabang}
-                    zonaKinerja={audit.zonaKinerja as "success" | "warning" | "critical"}
-                    zonaPerilaku={audit.zonaPerilaku as "success" | "warning" | "critical"}
-                    profil={audit.profil as "Leader" | "Visionary" | "Performer" | "At-Risk"}
-                    tanggal={formatDate(audit.createdAt)}
-                    onView={() => setLocation(`/audit/${audit.id}`)}
-                    onDelete={() => handleDeleteClick(audit)}
-                    data-testid={`audit-card-${audit.id}`}
-                  />
-                ))}
-              </div>
-            )}
-            {!isLoading && filteredAudits.length === 0 && audits.length === 0 && (
+            ) : summary.recentAudits.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <p className="text-lg mb-2">Belum ada audit</p>
                 <p className="text-sm">Klik "Audit Baru" untuk memulai audit pertama Anda</p>
               </div>
-            )}
-            {!isLoading && filteredAudits.length === 0 && audits.length > 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                Tidak ada audit yang ditemukan dengan kata kunci "{searchQuery}"
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {summary.recentAudits.map((audit) => (
+                  <div
+                    key={audit.id}
+                    className="bg-card rounded-xl border border-border p-6 space-y-4 hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => setLocation(`/audit/${audit.id}`)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1 flex-1">
+                        <h3 className="font-semibold text-lg">{audit.nama}</h3>
+                        <p className="text-sm text-muted-foreground">{audit.jabatan}</p>
+                        <p className="text-xs text-muted-foreground">{audit.cabang}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        audit.zonaFinal === "hijau" 
+                          ? "bg-green-500/20 text-green-400" 
+                          : audit.zonaFinal === "kuning"
+                          ? "bg-yellow-500/20 text-yellow-400"
+                          : "bg-red-500/20 text-red-400"
+                      }`}>
+                        {audit.zonaFinal === "hijau" ? "🟩 Hijau" : audit.zonaFinal === "kuning" ? "🟨 Kuning" : "🟥 Merah"}
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(audit.createdAt)}
+                    </p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -248,7 +279,7 @@ export default function Dashboard() {
             <AlertDialogTitle>Hapus Audit?</AlertDialogTitle>
             <AlertDialogDescription>
               Apakah Anda yakin ingin menghapus audit untuk <strong>{auditToDelete?.nama}</strong>? 
-              Tindakan ini tidak dapat dibatalkan dan semua data termasuk chat history akan dihapus permanen.
+              Audit akan dihapus dari tampilan Anda, tapi admin masih bisa melihat dan mengembalikannya jika diperlukan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

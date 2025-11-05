@@ -198,6 +198,11 @@ export const audits = pgTable("audits", {
     quote: string;
   }>(),
   
+  // Soft Delete Support (for user vs admin delete differentiation)
+  deletedAt: timestamp("deleted_at"), // NULL = active, NOT NULL = deleted
+  deletedById: varchar("deleted_by_id"), // Links to users.id - who deleted this audit
+  deletedReason: text("deleted_reason"), // "user_delete" | "admin_delete" | custom reason
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
