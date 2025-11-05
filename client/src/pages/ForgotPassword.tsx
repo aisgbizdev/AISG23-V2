@@ -4,7 +4,8 @@
  */
 
 import { useState } from "react";
-import { useLocation, Link } from "wouter";
+import { useLocation, Link, Redirect } from "wouter";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +26,13 @@ export default function ForgotPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
+
+  // If already logged in, redirect to dashboard
+  if (!authLoading && user) {
+    return <Redirect to="/" />;
+  }
 
   // Step 1: Check username and get security question
   const handleUsernameSubmit = async (e: React.FormEvent) => {
