@@ -223,20 +223,20 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold mb-4">
               Audit Terbaru (3)
             </h2>
-            {!summary ? (
+            {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="h-64 bg-card rounded-lg animate-pulse" />
                 ))}
               </div>
-            ) : summary.recentAudits.length === 0 ? (
+            ) : audits.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <p className="text-lg mb-2">Belum ada audit</p>
                 <p className="text-sm">Klik "Audit Baru" untuk memulai audit pertama Anda</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {summary.recentAudits.map((audit) => (
+                {audits.slice(0, 3).map((audit) => (
                   <div
                     key={audit.id}
                     className="bg-card rounded-xl border border-border p-6 space-y-4 hover:shadow-lg transition-shadow cursor-pointer"
