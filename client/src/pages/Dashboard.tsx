@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useAuth } from "@/lib/auth-context";
 import StatCard from "@/components/StatCard";
 import AuditCard from "@/components/AuditCard";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import { BarChart3, Users, TrendingUp, Clock, Plus, Search, Filter } from "lucid
 import type { Audit } from "@shared/schema";
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [auditToDelete, setAuditToDelete] = useState<{ id: string; nama: string } | null>(null);
@@ -92,10 +94,20 @@ export default function Dashboard() {
     audit.cabang.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Use global stats from summary endpoint (all users)
-  const totalAudits = summary?.totalAudits ?? 0;
-  const uniqueUsers = summary?.uniqueUsers ?? 0;
-  const zonaHijauPercentage = summary?.zonaHijauPercentage ?? "0.0";
+  // Check if user is admin (can see global stats)
+  const isAdmin = user?.role === "admin" || user?.role === "full_admin";
+
+  // For regular users: show personal stats (from their own audits)
+  // For admins: show global stats (from summary endpoint)
+  const totalAudits = isAdmin ? (summary?.totalAudits ?? 0) : audits.length;
+  const uniqueUsers = isAdmin ? (summary?.uniqueUsers ?? 0) : (audits.length > 0 ? 1 : 0);
+  
+  // Calculate zona hijau percentage from user's own audits
+  const userZonaHijauCount = audits.filter(a => a.zonaFinal === "hijau").length;
+  const userZonaHijauPercentage = audits.length > 0 
+    ? ((userZonaHijauCount / audits.length) * 100).toFixed(1)
+    : "0.0";
+  const zonaHijauPercentage = isAdmin ? (summary?.zonaHijauPercentage ?? "0.0") : userZonaHijauPercentage;
   
   // Calculate pending reviews from user's own audits
   const pendingReviews = audits.filter(a => 
