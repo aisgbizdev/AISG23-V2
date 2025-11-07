@@ -73,11 +73,8 @@ export default function Login() {
           </div>
 
           {/* Title */}
-          <div className="space-y-2">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              AiSG
-            </CardTitle>
-            <CardDescription className="text-gray-400">
+          <div>
+            <CardDescription className="text-gray-400 text-base">
               Audit Intelligence System Growth
             </CardDescription>
           </div>
