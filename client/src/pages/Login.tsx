@@ -61,9 +61,13 @@ export default function Login() {
           {/* Logo */}
           <div className="flex justify-center">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full blur-xl opacity-50" />
-              <div className="relative w-16 h-16 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 rounded-full blur-2xl opacity-40" />
+              <div className="relative w-20 h-20 rounded-full overflow-hidden shadow-2xl ring-2 ring-amber-500/30">
+                <img 
+                  src="/logo-aisg.jpg" 
+                  alt="AiSG Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
