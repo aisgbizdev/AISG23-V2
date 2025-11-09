@@ -149,10 +149,6 @@ export default function Dashboard() {
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
                 AiSG – Audit Intelligence System Growth
               </h1>
-              <p className="text-sm sm:text-base text-gray-300 flex items-center justify-center gap-2">
-                <span>By community builder</span>
-                <span className="text-amber-400">✨</span>
-              </p>
             </div>
 
             {/* Description */}
