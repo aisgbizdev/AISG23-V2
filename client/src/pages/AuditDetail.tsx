@@ -275,7 +275,7 @@ export default function AuditDetail() {
           </div>
 
           {/* 18 Pilar Tab */}
-          <TabsContent value="pilar">
+          <TabsContent value="pilar" className="pt-6">
             <Card className="p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">18 Pilar Reality Score</h2>
               <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
@@ -372,7 +372,7 @@ export default function AuditDetail() {
           </TabsContent>
 
           {/* SWOT & Action Tab */}
-          <TabsContent value="swot">
+          <TabsContent value="swot" className="pt-6">
             <div className="space-y-6">
               {/* Insight Lengkap */}
               <Card className="p-6">
@@ -538,7 +538,7 @@ export default function AuditDetail() {
           </TabsContent>
 
           {/* ProDem Tab */}
-          <TabsContent value="prodem">
+          <TabsContent value="prodem" className="pt-6">
             <Card className="p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Rekomendasi ProDem (Promotion-Demotion)</h2>
               {prodem && (
@@ -612,7 +612,7 @@ export default function AuditDetail() {
           </TabsContent>
 
           {/* Magic Section Tab */}
-          <TabsContent value="magic">
+          <TabsContent value="magic" className="pt-6">
             <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
               <h2 className="text-2xl font-bold mb-6 text-center">✨ Magic Section ✨</h2>
               {magic && (
