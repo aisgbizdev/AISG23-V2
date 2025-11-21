@@ -1,4 +1,4 @@
-// db.ts – NeonDB Ready Version
+// db.ts – NeonDB Ready + Legacy Support
 import pkg from "pg";
 const { Pool } = pkg;
 
@@ -12,10 +12,11 @@ if (!connectionString) {
 export const pool = new Pool({
   connectionString,
   ssl: {
-    rejectUnauthorized: false, // wajib untuk Neon + Render
-  },
+    rejectUnauthorized: false
+  }
 });
 
+// Standar query function
 export const query = async (text: string, params?: any[]) => {
   try {
     const result = await pool.query(text, params);
@@ -26,7 +27,12 @@ export const query = async (text: string, params?: any[]) => {
   }
 };
 
-// OPTIONAL: test function (boleh dihapus)
+// Legacy compatibility for existing imports
+export const db = {
+  query: (text: string, params?: any[]) => pool.query(text, params),
+};
+
+// Optional test
 export const testConnection = async () => {
   try {
     const res = await pool.query("SELECT NOW()");
