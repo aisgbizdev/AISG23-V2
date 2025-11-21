@@ -1,15 +1,37 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
-import * as schema from "@shared/schema";
+// db.ts – NeonDB Ready Version
+import pkg from "pg";
+const { Pool } = pkg;
 
-neonConfig.webSocketConstructor = ws;
+const connectionString = process.env.DATABASE_URL;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
+if (!connectionString) {
+  console.error("❌ DATABASE_URL tidak ditemukan di environment");
+  process.exit(1);
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+export const pool = new Pool({
+  connectionString,
+  ssl: {
+    rejectUnauthorized: false, // wajib untuk Neon + Render
+  },
+});
+
+export const query = async (text: string, params?: any[]) => {
+  try {
+    const result = await pool.query(text, params);
+    return result;
+  } catch (error) {
+    console.error("❌ Database Query Error:", error);
+    throw error;
+  }
+};
+
+// OPTIONAL: test function (boleh dihapus)
+export const testConnection = async () => {
+  try {
+    const res = await pool.query("SELECT NOW()");
+    console.log("✅ Connected to NeonDB at:", res.rows[0].now);
+  } catch (err) {
+    console.error("❌ NeonDB connection failed:", err);
+  }
+};

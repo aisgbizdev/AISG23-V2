@@ -4,6 +4,9 @@ import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { ensureSuperadminExists } from "./auth";
+import { testConnection } from "./db";
+
+testConnection(); // cek NeonDB saat server start
 
 const app = express();
 
