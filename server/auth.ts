@@ -250,6 +250,7 @@ export function canAccessAudit(
 /**
  * Ensure superadmin user exists
  * This runs on server startup to guarantee superadmin exists in both dev and production databases
+ * Password is read from SUPERADMIN_PASSWORD environment variable for security
  */
 export async function ensureSuperadminExists(): Promise<void> {
   try {
@@ -265,11 +266,20 @@ export async function ensureSuperadminExists(): Promise<void> {
       return;
     }
     
+    // Get password from environment variable (secure)
+    const superadminPassword = process.env.SUPERADMIN_PASSWORD;
+    
+    if (!superadminPassword) {
+      console.log("⚠️ SUPERADMIN_PASSWORD not set - skipping superadmin creation");
+      console.log("   Set SUPERADMIN_PASSWORD environment variable to create superadmin");
+      return;
+    }
+    
     // Create superadmin if not exists
     console.log("🔧 Creating superadmin user...");
     await createUser({
       username: "superadmin",
-      password: "vito1007",
+      password: superadminPassword,
       name: "AiSG Admin Panel",
       email: "admin@aisg.com",
       role: "full_admin",
@@ -278,10 +288,7 @@ export async function ensureSuperadminExists(): Promise<void> {
     });
     
     console.log("✅ Superadmin user created successfully!");
-    console.log("   Username: superadmin");
-    console.log("   Password: vito1007");
   } catch (error) {
     console.error("❌ Failed to ensure superadmin exists:", error);
-    // Don't throw - let the app continue even if this fails
   }
 }

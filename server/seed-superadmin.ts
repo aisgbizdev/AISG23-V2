@@ -1,6 +1,6 @@
 /**
  * Seed script to create first superadmin user
- * Run with: npx tsx server/seed-superadmin.ts
+ * Run with: SUPERADMIN_PASSWORD=yourpassword npx tsx server/seed-superadmin.ts
  */
 
 import { createUser } from "./auth";
@@ -11,6 +11,14 @@ import { eq } from "drizzle-orm";
 async function seedSuperadmin() {
   try {
     console.log("🌱 Starting superadmin seed...");
+    
+    // Get password from environment variable
+    const password = process.env.SUPERADMIN_PASSWORD;
+    if (!password) {
+      console.error("❌ SUPERADMIN_PASSWORD environment variable is required!");
+      console.log("   Usage: SUPERADMIN_PASSWORD=yourpassword npx tsx server/seed-superadmin.ts");
+      process.exit(1);
+    }
     
     // Check if superadmin already exists
     const [existing] = await db
@@ -28,11 +36,11 @@ async function seedSuperadmin() {
       process.exit(0);
     }
     
-    // Create superadmin
+    // Create superadmin with secure password from env
     console.log("📝 Creating superadmin account...");
     const superadmin = await createUser({
       username: "superadmin",
-      password: "vito1007",
+      password: password,
       name: "AiSG Admin Panel",
       role: "full_admin",
     });
@@ -42,9 +50,6 @@ async function seedSuperadmin() {
     console.log("   Name:", superadmin.name);
     console.log("   Role:", superadmin.role);
     console.log("   ID:", superadmin.id);
-    console.log("\n🔐 Login credentials:");
-    console.log("   Username: superadmin");
-    console.log("   Password: vito1007");
     console.log("\n🎉 You can now login to AiSG!");
     
     process.exit(0);
