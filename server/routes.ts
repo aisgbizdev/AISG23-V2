@@ -52,21 +52,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // GET /api/dashboard/summary - Get global dashboard stats (Protected)
+  // GET /api/dashboard/summary - Get dashboard stats (role-based visibility)
   app.get("/api/dashboard/summary", requireAuth, async (req, res) => {
     try {
       const allAudits = await storage.getAllAudits(false); // Non-deleted only
+      const isAdmin = req.user!.role === "full_admin" || req.user!.role === "admin";
       
-      // Calculate global stats
-      const totalAudits = allAudits.length;
-      const uniqueUsers = new Set(allAudits.map(a => a.ownerId).filter(Boolean)).size;
-      const zonaHijauCount = allAudits.filter(a => a.zonaFinal === "hijau").length;
+      // Filter audits based on role
+      const visibleAudits = isAdmin 
+        ? allAudits 
+        : allAudits.filter(a => a.ownerId === req.user!.id);
+      
+      // Calculate stats based on visible audits only
+      const totalAudits = visibleAudits.length;
+      const uniqueUsers = isAdmin 
+        ? new Set(allAudits.map(a => a.ownerId).filter(Boolean)).size 
+        : 1;
+      const zonaHijauCount = visibleAudits.filter(a => a.zonaFinal === "hijau").length;
       const zonaHijauPercentage = totalAudits > 0 
         ? ((zonaHijauCount / totalAudits) * 100).toFixed(1)
         : "0.0";
       
-      // Get 3 most recent audits (global)
-      const recentAudits = allAudits.slice(0, 3).map(audit => ({
+      // Get 3 most recent audits (filtered by ownership for non-admin)
+      const recentAudits = visibleAudits.slice(0, 3).map(audit => ({
         id: audit.id,
         nama: audit.nama,
         jabatan: audit.jabatan,
