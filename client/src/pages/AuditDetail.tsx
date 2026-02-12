@@ -222,10 +222,12 @@ export default function AuditDetail() {
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="text-sm">Margin Target</span>
-                    <span className="text-sm font-semibold">${report.progressKuartal.realisasiMargin.toLocaleString()} / ${report.progressKuartal.targetMargin.toLocaleString()}</span>
+                    <span className={`text-sm font-semibold ${report.progressKuartal.realisasiMargin < 0 ? 'text-red-500' : ''}`}>${report.progressKuartal.realisasiMargin.toLocaleString()} / ${report.progressKuartal.targetMargin.toLocaleString()}</span>
                   </div>
-                  <Progress value={Math.min(report.progressKuartal.percentageMargin, 100)} className="h-2" />
-                  <p className="text-xs text-muted-foreground mt-1">{report.progressKuartal.percentageMargin}% tercapai</p>
+                  <Progress value={Math.max(0, Math.min(report.progressKuartal.percentageMargin, 100))} className={`h-2 ${report.progressKuartal.realisasiMargin < 0 ? '[&>div]:bg-red-500' : ''}`} />
+                  <p className={`text-xs mt-1 ${report.progressKuartal.realisasiMargin < 0 ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
+                    {report.progressKuartal.realisasiMargin < 0 ? `MINUS ${Math.abs(report.progressKuartal.percentageMargin)}%` : `${report.progressKuartal.percentageMargin}% tercapai`}
+                  </p>
                 </div>
                 <div>
                   <div className="flex justify-between mb-2">

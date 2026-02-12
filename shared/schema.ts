@@ -207,11 +207,11 @@ export const audits = pgTable("audits", {
 });
 
 export const insertAuditSchema = createInsertSchema(audits, {
-  // Quarterly margins - Team
-  marginTimQ1: z.number().int().nonnegative(),
-  marginTimQ2: z.number().int().nonnegative(),
-  marginTimQ3: z.number().int().nonnegative(),
-  marginTimQ4: z.number().int().nonnegative(),
+  // Quarterly margins - Team (allow negative for loss periods)
+  marginTimQ1: z.number().int(),
+  marginTimQ2: z.number().int(),
+  marginTimQ3: z.number().int(),
+  marginTimQ4: z.number().int(),
   
   // Quarterly NA - Team
   naTimQ1: z.number().int().nonnegative(),

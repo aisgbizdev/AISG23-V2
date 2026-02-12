@@ -223,15 +223,21 @@ function calculateRealityScores(data: InsertAudit): Array<{
     // P5: Pencapaian Target - based on margin vs target
     else if (p.pillarId === 5) {
       const targetMargin = getTargetMarginByLevel(data.jabatan);
-      const achievement = targetMargin > 0 ? (marginCurrentQ / targetMargin) * 100 : 0;
       
-      if (achievement >= 100) realityScore = 5;
-      else if (achievement >= 80) realityScore = 4;
-      else if (achievement >= 60) realityScore = 3;
-      else if (achievement >= 40) realityScore = 2;
-      else realityScore = 1;
-      
-      insight = `Margin: $${marginCurrentQ.toLocaleString()} (${Math.round(achievement)}% dari target). ${realityScore >= 4 ? "Target terpenuhi!" : "Perlu boost closing!"}`;
+      if (marginCurrentQ < 0) {
+        realityScore = 1;
+        insight = `Margin MINUS: $${marginCurrentQ.toLocaleString()}. Kondisi kritis - margin negatif menunjukkan kerugian. Perlu evaluasi menyeluruh dan action plan darurat!`;
+      } else {
+        const achievement = targetMargin > 0 ? (marginCurrentQ / targetMargin) * 100 : 0;
+        
+        if (achievement >= 100) realityScore = 5;
+        else if (achievement >= 80) realityScore = 4;
+        else if (achievement >= 60) realityScore = 3;
+        else if (achievement >= 40) realityScore = 2;
+        else realityScore = 1;
+        
+        insight = `Margin: $${marginCurrentQ.toLocaleString()} (${Math.round(achievement)}% dari target). ${realityScore >= 4 ? "Target terpenuhi!" : "Perlu boost closing!"}`;
+      }
     }
     
     // P7: Kelengkapan Struktur Tim
@@ -252,15 +258,20 @@ function calculateRealityScores(data: InsertAudit): Array<{
     else if (p.pillarId === 9) {
       const marginPerMember = totalTeam > 0 ? marginCurrentQ / totalTeam : marginCurrentQ;
       
-      if (marginPerMember >= 20000) realityScore = 5;
-      else if (marginPerMember >= 15000) realityScore = 4;
-      else if (marginPerMember >= 10000) realityScore = 3;
-      else if (marginPerMember >= 5000) realityScore = 2;
-      else realityScore = 1;
-      
-      insight = totalTeam > 0
-        ? `Produktivitas: $${Math.round(marginPerMember).toLocaleString()}/orang. ${realityScore >= 4 ? "Tim produktif!" : "Perlu tingkatkan output per member."}`
-        : "Belum punya tim untuk diukur produktivitasnya.";
+      if (marginCurrentQ < 0) {
+        realityScore = 1;
+        insight = `Margin negatif ($${marginCurrentQ.toLocaleString()}) - produktivitas tim dalam kondisi kritis. Perlu evaluasi dan recovery plan segera.`;
+      } else if (totalTeam > 0) {
+        if (marginPerMember >= 20000) realityScore = 5;
+        else if (marginPerMember >= 15000) realityScore = 4;
+        else if (marginPerMember >= 10000) realityScore = 3;
+        else if (marginPerMember >= 5000) realityScore = 2;
+        else realityScore = 1;
+        
+        insight = `Produktivitas: $${Math.round(marginPerMember).toLocaleString()}/orang. ${realityScore >= 4 ? "Tim produktif!" : "Perlu tingkatkan output per member."}`;
+      } else {
+        insight = "Belum punya tim untuk diukur produktivitasnya.";
+      }
     }
     
     // P13: Disiplin & Konsistensi - based on quarterly consistency
@@ -439,7 +450,7 @@ function generate12SectionReport(
     targetNA: 2,
     realisasiNA: naCurrentQ,
     percentageNA: Math.round((naCurrentQ / 2) * 100),
-    catatan: marginCurrentQ >= targetMargin ? "Target tercapai!" : marginCurrentQ >= targetMargin * 0.8 ? "Cukup, perlu ditingkatkan" : "Under target, perlu perhatian khusus"
+    catatan: marginCurrentQ < 0 ? "KRITIS: Margin negatif! Perlu recovery plan darurat." : marginCurrentQ >= targetMargin ? "Target tercapai!" : marginCurrentQ >= targetMargin * 0.8 ? "Cukup, perlu ditingkatkan" : "Under target, perlu perhatian khusus"
   };
   
   // 6. EWS (Early Warning System)
@@ -590,8 +601,18 @@ function generateEWS(pillarScores: any[], totalGap: number, zonaFinal: string, m
     });
   }
   
+  // Check negative margin (critical)
+  if (marginCurrentQ < 0) {
+    ews.push({
+      faktor: "Margin Negatif (KRITIS)",
+      indikator: `$${marginCurrentQ.toLocaleString()} (RUGI)`,
+      risiko: "Kerugian aktif - mengancam posisi dan tim. Potensi demosi langsung.",
+      saranCepat: "Stop bleeding: evaluasi penyebab kerugian, recovery plan darurat, eskalasi ke atasan"
+    });
+  }
+  
   // Check margin under-performance
-  if (marginCurrentQ < targetMargin * 0.5) {
+  if (marginCurrentQ >= 0 && marginCurrentQ < targetMargin * 0.5) {
     ews.push({
       faktor: "Margin Under Target",
       indikator: `${Math.round((marginCurrentQ/targetMargin)*100)}% dari target`,
@@ -634,7 +655,12 @@ function generateProDemRecommendation(
   const requirements: Array<{ label: string; value: string; met: boolean }> = [];
   
   // ProDem Logic based on level & quarterly performance
-  if (zonaFinal === "merah" || totalRealityScore < 45) {
+  if (marginCurrentQ < 0) {
+    recommendation = "Demosi";
+    reason = `Margin NEGATIF ($${marginCurrentQ.toLocaleString()}) menunjukkan kerugian di kuartal ini. Reality Score ${totalRealityScore}/90. Kondisi kritis memerlukan tindakan segera.`;
+    konsekuensi = "Margin negatif adalah indikator kritis. Tanpa recovery dalam 30 hari, demosi akan diproses.";
+    nextStep = "Evaluasi menyeluruh penyebab kerugian, coaching intensif harian, dan recovery plan darurat dengan atasan.";
+  } else if (zonaFinal === "merah" || totalRealityScore < 45) {
     recommendation = "Demosi";
     reason = `Reality Score ${totalRealityScore}/90 berada di zona merah. Performa kritis pada beberapa pilar utama.`;
     konsekuensi = "Tanpa perbaikan dalam 30 hari, demosi otomatis akan diproses.";
