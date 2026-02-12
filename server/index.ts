@@ -38,11 +38,11 @@ app.use(session({
   saveUninitialized: false,
   proxy: true, // Trust proxy for cookie setting
   cookie: {
-    secure: process.env.NODE_ENV === "production", // HTTPS in production
-    httpOnly: true, // Prevent XSS
+    secure: true,
+    httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: "lax", // CSRF protection
-    path: "/", // Available on all paths
+    sameSite: "none" as const,
+    path: "/",
   },
 }));
 
