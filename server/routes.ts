@@ -11,6 +11,7 @@ import { generateAuditPDF } from "./pdf-generator";
 import { registerAuthRoutes } from "./auth-routes";
 import { requireAuth, requireFullAdmin, requireAdmin } from "./middleware";
 import { canAccessAudit } from "./auth";
+import { processAuditData } from "./business-logic";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register authentication routes first
@@ -147,7 +148,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      res.json(audit);
+      try {
+        const inputData = {
+          nama: audit.nama,
+          jabatan: audit.jabatan,
+          cabang: audit.cabang,
+          tanggalLahir: audit.tanggalLahir,
+          marginTimQ1: audit.marginTimQ1,
+          marginTimQ2: audit.marginTimQ2,
+          marginTimQ3: audit.marginTimQ3,
+          marginTimQ4: audit.marginTimQ4,
+          naTimQ1: audit.naTimQ1,
+          naTimQ2: audit.naTimQ2,
+          naTimQ3: audit.naTimQ3,
+          naTimQ4: audit.naTimQ4,
+          marginPribadiQ1: audit.marginPribadiQ1,
+          marginPribadiQ2: audit.marginPribadiQ2,
+          marginPribadiQ3: audit.marginPribadiQ3,
+          marginPribadiQ4: audit.marginPribadiQ4,
+          nasabahPribadiQ1: audit.nasabahPribadiQ1,
+          nasabahPribadiQ2: audit.nasabahPribadiQ2,
+          nasabahPribadiQ3: audit.nasabahPribadiQ3,
+          nasabahPribadiQ4: audit.nasabahPribadiQ4,
+          jumlahBC: audit.jumlahBC,
+          jumlahSBC: audit.jumlahSBC,
+          jumlahBsM: audit.jumlahBsM,
+          jumlahSBM: audit.jumlahSBM,
+          jumlahEM: audit.jumlahEM,
+          jumlahSEM: audit.jumlahSEM,
+          jumlahVBM: audit.jumlahVBM,
+          jumlahBrM: audit.jumlahBrM,
+          pillarAnswers: audit.pillarAnswers as any,
+        };
+        const recalculated = processAuditData(inputData as any);
+        const updatedAudit = {
+          ...audit,
+          auditReport: recalculated.auditReport,
+          prodemRekomendasi: recalculated.prodemRekomendasi,
+          magicSection: recalculated.magicSection,
+          zonaFinal: recalculated.zonaFinal,
+          zonaKinerja: recalculated.zonaKinerja,
+          zonaPerilaku: recalculated.zonaPerilaku,
+          profil: recalculated.profil,
+          totalSelfScore: recalculated.totalSelfScore,
+        };
+        res.json(updatedAudit);
+      } catch (recalcError) {
+        res.json(audit);
+      }
     } catch (error) {
       console.error("Error fetching audit:", error);
       res.status(500).json({ error: "Internal server error" });

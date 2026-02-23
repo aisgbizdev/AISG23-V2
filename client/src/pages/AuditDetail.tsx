@@ -40,7 +40,18 @@ function getLiveQuarterlyTarget(jabatan: string): number {
 
 function getLiveTargetNA(jabatan: string): number {
   if (jabatan.includes("SBC") || jabatan.includes("BC")) return 1;
-  return Math.max(1, Math.ceil(getLiveQuarterlyTarget(jabatan) / 20000));
+  return Math.max(1, Math.ceil(getLiveQuarterlyTarget(jabatan) / 10000));
+}
+
+function getLivePromosiTarget(jabatan: string): { margin: number; nextLevel: string } | null {
+  if (jabatan.includes("VBM")) return { margin: 500000, nextLevel: "BM" };
+  if (jabatan.includes("SEM")) return { margin: 400000, nextLevel: "VBM" };
+  if (jabatan.includes("EM") && !jabatan.includes("SEM")) return { margin: 300000, nextLevel: "SEM" };
+  if (jabatan.includes("SBM")) return { margin: 200000, nextLevel: "EM" };
+  if (jabatan.includes("BSM") || jabatan.includes("BsM")) return { margin: 125000, nextLevel: "SBM" };
+  if (jabatan.includes("SBC")) return { margin: 10000, nextLevel: "BSM" };
+  if (jabatan.includes("BC")) return { margin: 10000, nextLevel: "SBC" };
+  return null;
 }
 
 export default function AuditDetail() {
@@ -227,19 +238,23 @@ export default function AuditDetail() {
               <h2 className="text-xl font-semibold">Progress Kuartal</h2>
             </div>
             {report?.progressKuartal && (() => {
-              const liveTarget = getLiveQuarterlyTarget(audit.jabatan);
+              const bertahanTarget = getLiveQuarterlyTarget(audit.jabatan);
+              const promosiData = getLivePromosiTarget(audit.jabatan);
               const liveTargetNA = getLiveTargetNA(audit.jabatan);
               const realisasi = report.progressKuartal.realisasiMargin;
               const realisasiNA = report.progressKuartal.realisasiNA;
-              const pctMargin = liveTarget > 0 ? Math.round((realisasi / liveTarget) * 100) : 0;
+              const pctBertahan = bertahanTarget > 0 ? Math.round((realisasi / bertahanTarget) * 100) : 0;
+              const pctPromosi = promosiData ? Math.round((realisasi / promosiData.margin) * 100) : 0;
               const pctNA = liveTargetNA > 0 ? Math.round((realisasiNA / liveTargetNA) * 100) : 0;
               const catatan = realisasi < 0
                 ? "KRITIS: Margin negatif! Perlu recovery plan darurat."
-                : realisasi >= liveTarget
-                  ? "Target tercapai! Pertahankan momentum."
-                  : realisasi >= liveTarget * 0.8
-                    ? "Hampir mencapai target. Sedikit lagi!"
-                    : "Di bawah target, perlu strategi boost yang lebih agresif.";
+                : realisasi >= bertahanTarget
+                  ? promosiData && realisasi >= promosiData.margin
+                    ? `Target promosi tercapai! Siap naik ke ${promosiData.nextLevel}.`
+                    : "Target bertahan tercapai! Kejar target promosi."
+                  : realisasi >= bertahanTarget * 0.8
+                    ? "Hampir mencapai target bertahan. Sedikit lagi!"
+                    : "Di bawah target bertahan, perlu strategi boost yang lebih agresif.";
               return (
               <div className="space-y-4">
                 <div>
@@ -249,19 +264,35 @@ export default function AuditDetail() {
                   </div>
                 </div>
                 <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm">Margin Target</span>
-                    <span className={`text-sm font-semibold ${realisasi < 0 ? 'text-red-500' : ''}`}>${realisasi.toLocaleString()} / ${liveTarget.toLocaleString()}</span>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm">Target Bertahan</span>
+                    <span className={`text-sm font-semibold ${realisasi < 0 ? 'text-red-500' : realisasi >= bertahanTarget ? 'text-green-400' : 'text-yellow-400'}`}>
+                      ${realisasi.toLocaleString()} / ${bertahanTarget.toLocaleString()}
+                    </span>
                   </div>
-                  <Progress value={Math.max(0, Math.min(pctMargin, 100))} className={`h-2 ${realisasi < 0 ? '[&>div]:bg-red-500' : ''}`} />
-                  <p className={`text-xs mt-1 ${realisasi < 0 ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
-                    {realisasi < 0 ? `MINUS ${Math.abs(pctMargin)}%` : `${pctMargin}% tercapai`}
+                  <Progress value={Math.max(0, Math.min(pctBertahan, 100))} className={`h-2 ${realisasi < 0 ? '[&>div]:bg-red-500' : realisasi >= bertahanTarget ? '[&>div]:bg-green-500' : '[&>div]:bg-yellow-500'}`} />
+                  <p className={`text-xs mt-1 ${realisasi < 0 ? 'text-red-500 font-semibold' : realisasi >= bertahanTarget ? 'text-green-400' : 'text-muted-foreground'}`}>
+                    {realisasi < 0 ? `MINUS ${Math.abs(pctBertahan)}%` : `${pctBertahan}% tercapai`}
                   </p>
                 </div>
+                {promosiData && (
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm">Target Promosi → {promosiData.nextLevel}</span>
+                      <span className={`text-sm font-semibold ${realisasi >= promosiData.margin ? 'text-green-400' : 'text-muted-foreground'}`}>
+                        ${realisasi.toLocaleString()} / ${promosiData.margin.toLocaleString()}
+                      </span>
+                    </div>
+                    <Progress value={Math.max(0, Math.min(pctPromosi, 100))} className={`h-2 ${realisasi >= promosiData.margin ? '[&>div]:bg-green-500' : '[&>div]:bg-blue-500'}`} />
+                    <p className={`text-xs mt-1 ${realisasi >= promosiData.margin ? 'text-green-400' : 'text-muted-foreground'}`}>
+                      {pctPromosi}% tercapai
+                    </p>
+                  </div>
+                )}
                 <div>
-                  <div className="flex justify-between mb-2">
+                  <div className="flex justify-between mb-1">
                     <span className="text-sm">NA Target</span>
-                    <span className="text-sm font-semibold">{realisasiNA} / {liveTargetNA}</span>
+                    <span className={`text-sm font-semibold ${realisasiNA >= liveTargetNA ? 'text-green-400' : 'text-muted-foreground'}`}>{realisasiNA} / {liveTargetNA}</span>
                   </div>
                   <Progress value={Math.min(pctNA, 100)} className="h-2" />
                   <p className="text-xs text-muted-foreground mt-1">{pctNA}% tercapai</p>

@@ -299,7 +299,7 @@ function getQuarterlyTargetMargin(jabatan: string): number {
 
 function getTargetNA(jabatan: string): number {
   if (jabatan.includes("SBC") || jabatan.includes("BC")) return 1;
-  return Math.max(1, Math.ceil(getQuarterlyTargetMargin(jabatan) / 20000));
+  return Math.max(1, Math.ceil(getQuarterlyTargetMargin(jabatan) / 10000));
 }
 
 function getExpectedTeamByLevel(jabatan: string): number {
