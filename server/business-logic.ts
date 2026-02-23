@@ -723,7 +723,7 @@ function generate12SectionReport(
 }
 
 // ============================================
-// SWOT - Character & Mindset Based
+// SWOT - Data-Driven Consultant Grade
 // ============================================
 
 function generateSWOT(pillarScores: any[], data: InsertAudit, marginCurrentQ: number, groups: ReturnType<typeof analyzeGroups>) {
@@ -731,136 +731,287 @@ function generateSWOT(pillarScores: any[], data: InsertAudit, marginCurrentQ: nu
   const weakness: string[] = [];
   const opportunity: string[] = [];
   const threat: string[] = [];
-  const targetMargin = getQuarterlyTargetMargin(data.jabatan);
+  const bertahan = getBertahanCriteria(data.jabatan);
+  const promosi = getPromosiCriteria(data.jabatan);
+  const totalTeam = data.jumlahBC + data.jumlahSBC + data.jumlahBsM + data.jumlahSBM + data.jumlahEM + data.jumlahSEM + data.jumlahVBM;
+  const kaderisasi = getKaderisasiMinimum(data.jabatan);
+  const level = data.jabatan.match(/\(([A-Za-z]+)\)/)?.[1] || data.jabatan;
+  const quarterInfo = getCurrentQuarter();
 
   const strongPillars = pillarScores.filter((p: any) => p.selfScore >= 4);
   const weakPillars = pillarScores.filter((p: any) => p.selfScore <= 2);
 
-  strongPillars.forEach((p: any) => {
-    strength.push(`${p.pillarName} (skor ${p.selfScore}/5): ${p.insight}`);
+  if (marginCurrentQ >= bertahan.saveByMargin) {
+    strength.push(`Margin $${marginCurrentQ.toLocaleString()} sudah melampaui target bertahan $${bertahan.saveByMargin.toLocaleString()} — posisi ${level} aman untuk kuartal ini.`);
+  }
+  if (promosi && marginCurrentQ >= promosi.targetMargin) {
+    strength.push(`Margin $${marginCurrentQ.toLocaleString()} sudah memenuhi syarat promosi $${promosi.targetMargin.toLocaleString()}. Tinggal pastikan syarat staf dan tim terpenuhi untuk naik ke ${promosi.nextLevel}.`);
+  }
+  if (totalTeam > 0 && promosi && totalTeam >= promosi.targetStaff) {
+    strength.push(`Tim ${totalTeam} orang sudah memenuhi syarat promosi (min ${promosi.targetStaff}). Kekuatan organisasi sudah solid.`);
+  }
+  strongPillars.slice(0, 2).forEach((p: any) => {
+    strength.push(`${p.pillarName} (skor ${p.selfScore}/5) — area kekuatan yang bisa dijadikan leverage untuk mendongkrak performa tim.`);
   });
-
-  weakPillars.forEach((p: any) => {
-    weakness.push(`${p.pillarName} (skor ${p.selfScore}/5): ${p.insight}`);
-  });
-
   if (groups.selling >= 4 && groups.teamBuilding >= 4) {
-    strength.push("Kombinasi kuat antara kemampuan penjualan dan pembangunan tim menunjukkan potensi leadership yang besar.");
-  }
-  if (groups.character >= 4) {
-    strength.push("Karakter kepemimpinan yang kuat menjadi fondasi solid untuk pertumbuhan karier jangka panjang.");
+    strength.push(`Kombinasi selling skill (${groups.selling.toFixed(1)}/5) dan team building (${groups.teamBuilding.toFixed(1)}/5) yang kuat — profil ideal untuk ekspansi organisasi.`);
   }
 
-  if (marginCurrentQ > 0 && marginCurrentQ < targetMargin) {
-    opportunity.push(`Margin positif ($${marginCurrentQ.toLocaleString()}) menunjukkan fondasi bisnis yang ada. Tingkatkan aktivitas untuk mencapai target $${targetMargin.toLocaleString()}.`);
-  }
-  if (marginCurrentQ >= targetMargin) {
-    opportunity.push("Target margin tercapai! Momentum positif ini bisa dimanfaatkan untuk ekspansi dan promosi.");
-  }
-  if (groups.growth >= 3 && groups.selling >= 3) {
-    opportunity.push("Kombinasi mindset berkembang dan kemampuan penjualan membuka peluang untuk naik level lebih cepat.");
-  }
-
-  if (groups.teamBuilding < 2.5) {
-    threat.push("Lemahnya pembangunan tim bisa menjadi hambatan serius untuk promosi dan keberlanjutan bisnis.");
-  }
-  if (groups.character < 2.5) {
-    threat.push("Area karakter dan kepemimpinan yang rendah berisiko menurunkan trust dan motivasi tim.");
+  if (marginCurrentQ < bertahan.saveByMargin && marginCurrentQ >= 0) {
+    const gap = bertahan.saveByMargin - marginCurrentQ;
+    const sisaMinggu = Math.ceil(quarterInfo.sisaHari / 7);
+    const perMinggu = sisaMinggu > 0 ? Math.ceil(gap / sisaMinggu) : gap;
+    weakness.push(`Margin $${marginCurrentQ.toLocaleString()} masih kurang $${gap.toLocaleString()} dari target bertahan $${bertahan.saveByMargin.toLocaleString()}. Dengan sisa ${quarterInfo.sisaHari} hari (${sisaMinggu} minggu), perlu closing $${perMinggu.toLocaleString()}/minggu untuk selamat.`);
   }
   if (marginCurrentQ < 0) {
-    threat.push(`Margin negatif ($${marginCurrentQ.toLocaleString()}) merupakan sinyal kritis yang membutuhkan tindakan segera.`);
+    weakness.push(`Margin NEGATIF $${marginCurrentQ.toLocaleString()} — ini situasi kritis. Bukan hanya tidak memenuhi target, tapi ada kerugian aktif yang harus segera dihentikan.`);
   }
-  if (data.jumlahBC + data.jumlahSBC + data.jumlahBsM === 0 && !data.jabatan.includes("BC")) {
-    threat.push("Belum memiliki tim bawahan langsung. Risiko single point of failure sangat tinggi.");
+  if (kaderisasi.minimum > 0) {
+    const currentKader = getTeamCountByRole(data, kaderisasi.targetRole);
+    if (currentKader < kaderisasi.minimum) {
+      weakness.push(`Kaderisasi belum memenuhi standar: baru punya ${currentKader} ${kaderisasi.targetRole} dari minimum ${kaderisasi.minimum}. Kurang ${kaderisasi.minimum - currentKader} ${kaderisasi.targetRole} lagi.`);
+    }
+  }
+  weakPillars.slice(0, 2).forEach((p: any) => {
+    weakness.push(`${p.pillarName} (skor ${p.selfScore}/5) — area kritis yang perlu perbaikan segera karena langsung berdampak pada performa operasional.`);
+  });
+  if (bertahan.saveByStaff && totalTeam < bertahan.saveByStaff.minStaff) {
+    weakness.push(`Jumlah staf ${totalTeam} orang belum memenuhi syarat Save by Staff (min ${bertahan.saveByStaff.minStaff}). Jalur penyelamatan via staf belum tersedia.`);
   }
 
-  if (strength.length === 0) strength.push("Potensi kekuatan perlu digali lebih dalam melalui refleksi dan mentoring.");
-  if (weakness.length === 0) weakness.push("Tidak ada kelemahan kritis terdeteksi. Pertahankan keseimbangan.");
-  if (opportunity.length === 0) opportunity.push("Fokus pada konsistensi dan pengembangan diri untuk membuka peluang baru.");
-  if (threat.length === 0) threat.push("Tidak ada ancaman signifikan saat ini. Tetap waspada dan proaktif.");
+  if (marginCurrentQ > 0 && marginCurrentQ < bertahan.saveByMargin) {
+    const gap = bertahan.saveByMargin - marginCurrentQ;
+    opportunity.push(`Gap ke target bertahan hanya $${gap.toLocaleString()} — ini achievable dengan strategi closing yang tepat dalam ${quarterInfo.sisaHari} hari tersisa.`);
+  }
+  if (marginCurrentQ >= bertahan.saveByMargin && promosi) {
+    const gapPromosi = promosi.targetMargin - marginCurrentQ;
+    if (gapPromosi > 0) {
+      opportunity.push(`Sudah aman bertahan. Gap ke promosi ${promosi.nextLevel} tinggal $${gapPromosi.toLocaleString()} lagi. Ini adalah window of opportunity untuk push ke level berikutnya.`);
+    } else {
+      opportunity.push(`Margin sudah melampaui target promosi! Fokus pastikan syarat staf (${promosi.targetStaff} orang) dan tim struktur terpenuhi untuk mengunci promosi ke ${promosi.nextLevel}.`);
+    }
+  }
+  if (groups.growth >= 3.5) {
+    opportunity.push(`Mindset growth tinggi (${groups.growth.toFixed(1)}/5) — ini modal untuk akselerasi lewat inovasi dan adaptasi strategi baru.`);
+  }
+  if (bertahan.saveByStaff && totalTeam >= bertahan.saveByStaff.minStaff) {
+    opportunity.push(`Tim ${totalTeam} orang sudah memenuhi jalur Save by Staff. Ini bisa jadi fallback strategy jika margin kuartal depan belum tercapai.`);
+  }
+
+  if (quarterInfo.sisaHari < 30 && marginCurrentQ < bertahan.saveByMargin) {
+    threat.push(`Sisa waktu kuartal hanya ${quarterInfo.sisaHari} hari dan margin masih di bawah target bertahan. Risiko demosi sangat tinggi jika tidak ada akselerasi segera.`);
+  }
+  if (groups.teamBuilding < 2.5 && !data.jabatan.includes("BC")) {
+    threat.push(`Team building rendah (${groups.teamBuilding.toFixed(1)}/5) — berisiko kehilangan anggota tim dan gagal memenuhi syarat kaderisasi untuk mempertahankan posisi.`);
+  }
+  if (groups.character < 2.5) {
+    threat.push(`Karakter kepemimpinan rendah (${groups.character.toFixed(1)}/5) — tim bisa kehilangan kepercayaan dan motivasi, menyebabkan turnover tinggi.`);
+  }
+  if (totalTeam === 0 && !data.jabatan.includes("BC")) {
+    threat.push(`Belum memiliki tim bawahan langsung. Semua beban ada di personal — single point of failure. Jika sakit atau cuti, bisnis berhenti total.`);
+  }
+  if (promosi && totalTeam < promosi.targetStaff) {
+    const staffGap = promosi.targetStaff - totalTeam;
+    threat.push(`Masih kurang ${staffGap} orang staf untuk memenuhi syarat promosi ke ${promosi.nextLevel}. Rekrutmen yang lambat bisa menunda karier ${data.nama} selama 1-2 kuartal.`);
+  }
+
+  if (strength.length === 0) strength.push(`Meski belum ada area yang menonjol, ${data.nama} punya fondasi yang bisa dibangun. Fokus pada 1-2 pilar kunci untuk menciptakan keunggulan.`);
+  if (weakness.length === 0) weakness.push("Secara keseluruhan tidak ada kelemahan kritis. Pertahankan konsistensi dan cari area untuk breakthrough.");
+  if (opportunity.length === 0) opportunity.push("Fokus pada eksekusi harian yang konsisten untuk membuka peluang di kuartal berikutnya.");
+  if (threat.length === 0) threat.push("Tidak ada ancaman kritis saat ini. Tetap monitor dan jangan lengah.");
 
   return { strength, weakness, opportunity, threat };
 }
 
 // ============================================
-// COACHING - Character Driven
+// COACHING - Data-Driven & Specific
 // ============================================
 
 function generateCoachingPoints(pillarScores: any[], zonaFinal: string, data: InsertAudit, groups: ReturnType<typeof analyzeGroups>): string[] {
   const points: string[] = [];
   const weakPillars = pillarScores.filter((p: any) => p.selfScore <= 2);
-  const targetMargin = getQuarterlyTargetMargin(data.jabatan);
-  const { quarterNum } = getCurrentQuarter();
-  const marginCurrentQ = [data.marginTimQ1, data.marginTimQ2, data.marginTimQ3, data.marginTimQ4][quarterNum - 1];
+  const bertahan = getBertahanCriteria(data.jabatan);
+  const promosi = getPromosiCriteria(data.jabatan);
+  const kaderisasi = getKaderisasiMinimum(data.jabatan);
+  const totalTeam = data.jumlahBC + data.jumlahSBC + data.jumlahBsM + data.jumlahSBM + data.jumlahEM + data.jumlahSEM + data.jumlahVBM;
+  const quarterInfo = getCurrentQuarter();
+  const marginCurrentQ = [data.marginTimQ1, data.marginTimQ2, data.marginTimQ3, data.marginTimQ4][quarterInfo.quarterNum - 1];
+
+  if (marginCurrentQ < 0) {
+    points.push(`DARURAT: Margin minus $${Math.abs(marginCurrentQ).toLocaleString()}. Langkah pertama: identifikasi sumber kerugian dalam 48 jam. Stop semua pengeluaran non-esensial. Buat daftar 10 prospek terpanas untuk di-closing minggu ini.`);
+  } else if (marginCurrentQ < bertahan.saveByMargin) {
+    const gap = bertahan.saveByMargin - marginCurrentQ;
+    const sisaMinggu = Math.ceil(quarterInfo.sisaHari / 7);
+    const targetPerMinggu = sisaMinggu > 0 ? Math.ceil(gap / sisaMinggu) : gap;
+    const naPerMinggu = Math.ceil(targetPerMinggu / 10000);
+    points.push(`Margin gap $${gap.toLocaleString()} ke target bertahan. Dengan ${sisaMinggu} minggu tersisa, ${data.nama} harus closing minimal $${targetPerMinggu.toLocaleString()}/minggu (±${naPerMinggu} NA/minggu). Buat daftar prospek harian dan follow-up tanpa jeda.`);
+  } else if (marginCurrentQ >= bertahan.saveByMargin && promosi && marginCurrentQ < promosi.targetMargin) {
+    const gapPromosi = promosi.targetMargin - marginCurrentQ;
+    points.push(`Posisi bertahan sudah aman. Untuk promosi ke ${promosi.nextLevel}, masih perlu $${gapPromosi.toLocaleString()} lagi. Fokus pada closing deal-deal besar dan aktivasi pipeline yang sudah matang.`);
+  }
+
+  if (kaderisasi.minimum > 0) {
+    const currentKader = getTeamCountByRole(data, kaderisasi.targetRole);
+    if (currentKader < kaderisasi.minimum) {
+      const kurang = kaderisasi.minimum - currentKader;
+      points.push(`Kaderisasi kritis: butuh ${kurang} ${kaderisasi.targetRole} lagi (punya ${currentKader}, minimum ${kaderisasi.minimum}). Jadwalkan minimal 3 sesi rekrutmen per minggu. Manfaatkan jaringan tim yang sudah ada untuk referral.`);
+    }
+  }
 
   if (weakPillars.length > 0) {
     const topWeak = weakPillars.slice(0, 2);
     topWeak.forEach((p: any) => {
-      points.push(`Prioritas pengembangan: ${p.pillarName} - ${p.insight}`);
+      points.push(`Pilar kritis "${p.pillarName}" (skor ${p.selfScore}/5): ${p.insight}. Jadwalkan coaching khusus area ini minimal 1x/minggu dengan atasan langsung.`);
     });
   }
 
-  if (groups.selling < 3) {
-    points.push("Tingkatkan kemampuan penjualan melalui latihan prospecting dan closing secara rutin. Targetkan minimal 20 prospek per minggu.");
+  if (groups.selling < 3 && !data.jabatan.includes("BC")) {
+    const naTarget = Math.ceil(bertahan.saveByMargin / 10000);
+    points.push(`Selling skill perlu ditingkatkan (${groups.selling.toFixed(1)}/5). Target: ${naTarget} NA/kuartal. Artinya butuh pipeline prospek 5-10x lipat = ${naTarget * 7} prospek aktif. Latihan presentasi dan closing 2x/minggu.`);
   }
+
   if (groups.teamBuilding < 3 && !data.jabatan.includes("BC")) {
-    const kad = getKaderisasiMinimum(data.jabatan);
-    points.push(`Fokus pada kaderisasi: sebagai ${kad.level}, Anda perlu minimal ${kad.minimum} ${kad.targetRole} aktif. Mulai rekrut dan bina sekarang.`);
-  }
-  if (groups.character < 3) {
-    points.push("Bangun karakter kepemimpinan melalui disiplin harian, konsistensi kerja, dan kolaborasi aktif dengan tim.");
+    points.push(`Team building rendah (${groups.teamBuilding.toFixed(1)}/5) dengan ${totalTeam} staf. Mulai daily check-in 10 menit dengan tim. Buat target individu per anggota tim dan review setiap Jumat.`);
   }
 
-  if (marginCurrentQ < 0) {
-    points.push("URGENT: Margin negatif membutuhkan recovery plan darurat. Evaluasi penyebab kerugian dan buat strategi pemulihan 30 hari.");
-  } else if (marginCurrentQ < targetMargin * 0.5) {
-    points.push(`Margin masih jauh di bawah target ($${marginCurrentQ.toLocaleString()} vs $${targetMargin.toLocaleString()}). Tingkatkan aktivitas closing secara agresif.`);
+  if (promosi && totalTeam < promosi.targetStaff) {
+    const staffGap = promosi.targetStaff - totalTeam;
+    points.push(`Butuh rekrut ${staffGap} orang lagi untuk memenuhi syarat promosi ke ${promosi.nextLevel} (punya ${totalTeam}, butuh ${promosi.targetStaff}). Target: minimal 2 rekrut baru per bulan.`);
   }
 
-  if (zonaFinal === "hijau" && points.length === 0) {
-    points.push("Maintain excellence dan jadilah mentor bagi rekan-rekan yang lebih junior.");
-    points.push("Persiapkan diri untuk tanggung jawab di level berikutnya. Perluas wawasan dan kemampuan leadership.");
-  }
-
-  while (points.length < 3) {
-    if (groups.growth < 3.5) {
-      points.push("Ikuti pelatihan dan pengembangan diri secara rutin. Inovasi cara kerja untuk hasil yang lebih efektif.");
-    } else {
-      points.push("Monitor progress mingguan, evaluasi pencapaian, dan sesuaikan strategi berdasarkan kondisi terkini.");
+  if (zonaFinal === "hijau" && points.length < 2) {
+    if (promosi) {
+      points.push(`Performa excellent. Persiapkan transisi ke ${promosi.nextLevel}: mulai delegasi tugas operasional, mentoring kader potensial, dan pelajari tanggung jawab level berikutnya.`);
     }
+    points.push(`Jadilah force multiplier — bagikan best practice ke tim, ciptakan SOP keberhasilan, dan bantu 2-3 anggota tim naik performa mereka.`);
   }
 
-  return points.slice(0, 4);
+  if (points.length === 0) {
+    points.push("Konsistensi adalah kunci. Monitor progress harian, evaluasi mingguan, dan sesuaikan strategi berdasarkan hasil.");
+  }
+
+  return points.slice(0, 5);
 }
 
 // ============================================
-// ACTION PLAN - Development Focused
+// ACTION PLAN - Dynamic Based on Sisa Hari Kuartal
 // ============================================
 
 function generateActionPlan(coachingPoints: string[], data: InsertAudit, weakPillars: string[]) {
-  const weakArea = weakPillars.length > 0 ? weakPillars[0] : "area prioritas";
+  const quarterInfo = getCurrentQuarter();
+  const sisaHari = quarterInfo.sisaHari;
+  const bertahan = getBertahanCriteria(data.jabatan);
+  const promosi = getPromosiCriteria(data.jabatan);
+  const marginCurrentQ = [data.marginTimQ1, data.marginTimQ2, data.marginTimQ3, data.marginTimQ4][quarterInfo.quarterNum - 1];
+  const totalTeam = data.jumlahBC + data.jumlahSBC + data.jumlahBsM + data.jumlahSBM + data.jumlahEM + data.jumlahSEM + data.jumlahVBM;
+  const kaderisasi = getKaderisasiMinimum(data.jabatan);
+  const currentKader = kaderisasi.minimum > 0 ? getTeamCountByRole(data, kaderisasi.targetRole) : 0;
+  const kaderGap = Math.max(0, kaderisasi.minimum - currentKader);
+
+  const marginGapBertahan = Math.max(0, bertahan.saveByMargin - marginCurrentQ);
+  const marginGapPromosi = promosi ? Math.max(0, promosi.targetMargin - marginCurrentQ) : 0;
+  const sudahBertahan = marginCurrentQ >= bertahan.saveByMargin;
+  const sudahPromosi = promosi ? marginCurrentQ >= promosi.targetMargin : false;
+
+  if (sisaHari <= 20) {
+    const targetPerHari = marginGapBertahan > 0 ? Math.ceil(marginGapBertahan / sisaHari) : 0;
+    return [
+      {
+        periode: `Sprint ${sisaHari} Hari (DARURAT)`,
+        target: sudahBertahan
+          ? `Amankan posisi dan push ke promosi — gap $${marginGapPromosi.toLocaleString()}`
+          : `SELAMATKAN POSISI — kejar $${marginGapBertahan.toLocaleString()} dalam ${sisaHari} hari ($${targetPerHari.toLocaleString()}/hari)`,
+        aktivitas: sudahBertahan
+          ? `Closing semua pipeline matang, follow-up 5 prospek/hari, aktivasi referral dari klien existing`
+          : `ALL-IN closing: kontak seluruh pipeline, follow-up setiap hari tanpa jeda, minta bantuan atasan untuk joint closing, aktivasi semua referral`,
+        pic: data.nama,
+        output: sudahBertahan
+          ? `Target: margin tambahan $${marginGapPromosi.toLocaleString()} untuk promosi. Minimal 3 closing baru.`
+          : `Target: closing $${marginGapBertahan.toLocaleString()} untuk selamatkan posisi. Setiap hari harus ada progress terukur.`
+      }
+    ];
+  }
+
+  if (sisaHari <= 45) {
+    const sisaMinggu = Math.ceil(sisaHari / 7);
+    const fase1Hari = Math.ceil(sisaHari / 2);
+    const fase2Hari = sisaHari - fase1Hari;
+    const targetPerMinggu = marginGapBertahan > 0 ? Math.ceil(marginGapBertahan / sisaMinggu) : 0;
+    return [
+      {
+        periode: `Fase 1: ${fase1Hari} Hari — Akselerasi`,
+        target: sudahBertahan
+          ? `Push margin ke target promosi $${promosi?.targetMargin.toLocaleString() || "N/A"}. Gap: $${marginGapPromosi.toLocaleString()}.`
+          : `Tutup gap bertahan $${marginGapBertahan.toLocaleString()} — target $${targetPerMinggu.toLocaleString()}/minggu`,
+        aktivitas: sudahBertahan
+          ? `Fokus closing deal besar, daily prospecting 5 kontak baru, weekly pipeline review, ${kaderGap > 0 ? `rekrut ${kaderGap} ${kaderisasi.targetRole} baru` : "coaching tim intensif"}`
+          : `Blitz closing: 10 follow-up/hari, joint visit dengan atasan 2x/minggu, aktivasi semua prospek dormant, minta referral dari setiap klien existing`,
+        pic: data.nama,
+        output: sudahBertahan
+          ? `Minimal ${Math.ceil(marginGapPromosi / 15000)} closing baru. Pipeline terverifikasi bertambah 20%.`
+          : `Margin naik minimal $${Math.ceil(marginGapBertahan * 0.6).toLocaleString()}. Pipeline closing teridentifikasi untuk sisa kuartal.`
+      },
+      {
+        periode: `Fase 2: ${fase2Hari} Hari — Finishing`,
+        target: sudahBertahan
+          ? `Kunci pencapaian promosi. Pastikan syarat staf terpenuhi (${totalTeam}/${promosi?.targetStaff || "N/A"}).`
+          : `Capai target bertahan $${bertahan.saveByMargin.toLocaleString()}. Setiap deal counts.`,
+        aktivitas: sudahBertahan
+          ? `Review struktur tim, coaching kader potensial, presentasi pencapaian ke atasan, persiapan transisi ke ${promosi?.nextLevel || "next level"}`
+          : `Closing semua pipeline yang sudah matang, daily tracking progress vs target, eskalasi ke atasan jika masih gap, ${kaderGap > 0 ? `rekrut ${kaderGap} ${kaderisasi.targetRole}` : "konsolidasi tim"}`,
+        pic: data.nama,
+        output: sudahBertahan
+          ? `Promosi terkunci. Struktur tim lengkap dan siap untuk tanggung jawab baru.`
+          : `Target bertahan tercapai. Posisi aman untuk kuartal depan.`
+      }
+    ];
+  }
+
+  const fase1 = 30;
+  const fase2 = Math.min(30, sisaHari - 30);
+  const fase3 = Math.max(0, sisaHari - 60);
+  const targetFase1 = marginGapBertahan > 0 ? Math.ceil(marginGapBertahan * 0.5) : 0;
+  const targetFase2 = marginGapBertahan > 0 ? Math.ceil(marginGapBertahan * 0.35) : 0;
 
   return [
     {
-      periode: "30 Hari",
-      target: coachingPoints[0] || "Stabilkan performa dan identifikasi area pengembangan",
-      aktivitas: `Refleksi diri mingguan, latihan harian pada ${weakArea}, diskusi dengan mentor, tracking aktivitas prospecting`,
+      periode: `Fase 1: 30 Hari — Fondasi & Quick Wins`,
+      target: sudahBertahan
+        ? `Amankan pencapaian dan mulai kejar promosi ke ${promosi?.nextLevel || "next level"}. Gap promosi: $${marginGapPromosi.toLocaleString()}.`
+        : `Tutup 50% gap bertahan = $${targetFase1.toLocaleString()} dari total gap $${marginGapBertahan.toLocaleString()}`,
+      aktivitas: sudahBertahan
+        ? `Daily prospecting 5 kontak baru, weekly pipeline review, ${kaderGap > 0 ? `identifikasi dan mulai rekrut ${kaderGap} ${kaderisasi.targetRole}` : "mentoring tim untuk peningkatan produktivitas"}, ${weakPillars.length > 0 ? `coaching area "${weakPillars[0]}" 1x/minggu` : "review dan optimasi proses kerja"}`
+        : `Audit semua pipeline aktif, buat daftar 30 prospek terpanas, daily follow-up tanpa skip, join visit dengan atasan 2x/minggu, ${weakPillars.length > 0 ? `coaching "${weakPillars[0]}" 1x/minggu` : "latihan closing technique 2x/minggu"}`,
       pic: data.nama,
-      output: "Peningkatan kesadaran diri, minimal 1 kebiasaan baru yang konsisten, target aktivitas harian tercapai"
+      output: sudahBertahan
+        ? `Pipeline promosi terbangun. ${kaderGap > 0 ? `Minimal ${Math.min(kaderGap, 1)} ${kaderisasi.targetRole} baru direkrut.` : "Tim stabil dan produktif."}`
+        : `Margin naik $${targetFase1.toLocaleString()}. Minimal ${Math.ceil(targetFase1 / 10000)} closing baru. Daily habit terbentuk.`
     },
     {
-      periode: "60 Hari",
-      target: coachingPoints[1] || "Tingkatkan area pengembangan dan perkuat fondasi",
-      aktivitas: "Implementasi skill baru dari pelatihan, coaching dengan atasan, bangun jaringan baru, evaluasi progres tim",
+      periode: `Fase 2: ${fase2} Hari — Akselerasi`,
+      target: sudahBertahan
+        ? `Push agresif ke target promosi. Perlu $${marginGapPromosi.toLocaleString()} dan ${promosi ? `${promosi.targetStaff} staf` : "staf aktif"}.`
+        : `Tutup 35% gap lagi = $${targetFase2.toLocaleString()}. Total akumulasi harus $${(targetFase1 + targetFase2).toLocaleString()} dari gap.`,
+      aktivitas: sudahBertahan
+        ? `Scale up aktivitas tim, ${kaderGap > 0 ? `onboarding ${kaderisasi.targetRole} baru, bina dan monitor produktivitas` : "delegasi operasional ke kader"}, buka pasar/segmen baru, evaluasi dan sesuaikan strategi closing`
+        : `Tingkatkan frekuensi closing ke 2-3x/minggu, leverage network atasan untuk deal besar, ${kaderGap > 0 ? `rekrut ${Math.min(kaderGap, 1)} ${kaderisasi.targetRole} lagi` : "optimalkan produktivitas tim yang ada"}, evaluasi hit rate dan perbaiki teknik presentasi`,
       pic: data.nama,
-      output: "Peningkatan skor di area lemah, hubungan tim lebih solid, pipeline bisnis bertambah"
+      output: sudahBertahan
+        ? `Progress terukur ke promosi. ${kaderGap > 0 ? `${kaderisasi.targetRole} baru mulai produktif.` : "Tim produktivitasnya naik 20%."}`
+        : `Margin akumulasi mencapai ${Math.min(90, Math.ceil(((targetFase1 + targetFase2) / marginGapBertahan) * 100))}% dari gap. Bertahan semakin realistis.`
     },
     {
-      periode: "90 Hari",
-      target: coachingPoints[2] || "Capai target kuartal dan persiapkan level berikutnya",
-      aktivitas: "Review pencapaian menyeluruh, presentasi progress ke atasan, rencana pengembangan kuartal berikutnya",
+      periode: `Fase 3: ${fase3} Hari — Penutupan & Evaluasi`,
+      target: sudahBertahan
+        ? sudahPromosi ? `Kunci promosi ke ${promosi?.nextLevel}. Presentasi pencapaian ke manajemen.` : `Capai target promosi atau amankan posisi terbaik untuk kuartal depan.`
+        : `Closing semua pipeline tersisa. Target bertahan $${bertahan.saveByMargin.toLocaleString()} HARUS tercapai.`,
+      aktivitas: sudahBertahan
+        ? `Review pencapaian vs target promosi, presentasi progress ke atasan, persiapkan rencana kuartal depan, ${promosi ? `finalisasi syarat ${promosi.nextLevel}` : "evaluasi menyeluruh"}`
+        : `ALL-IN closing: follow-up intensif setiap hari, eskalasi deal tertunda ke atasan, review pencapaian vs target, buat rencana contingency jika masih gap`,
       pic: data.nama,
-      output: "Target kuartal tercapai, profil kompetensi meningkat, kesiapan untuk tantangan yang lebih besar"
+      output: sudahBertahan
+        ? `Evaluasi lengkap kuartal. Roadmap kuartal depan siap. ${promosi ? `Status promosi ke ${promosi.nextLevel} dikonfirmasi.` : ""}`
+        : `Target bertahan tercapai = posisi aman. Atau identifikasi strategi Save by Staff sebagai backup.`
     }
   ];
 }
@@ -888,39 +1039,44 @@ function generateEWS(
     });
   }
 
+  const bertahanEws = getBertahanCriteria(data.jabatan);
+  const quarterEws = getCurrentQuarter();
   if (marginCurrentQ >= 0 && marginCurrentQ < targetMargin * 0.5) {
+    const gapEws = targetMargin - marginCurrentQ;
+    const sisaMingguEws = Math.ceil(quarterEws.sisaHari / 7);
     ews.push({
       faktor: "Margin Jauh Di Bawah Target",
-      indikator: `${Math.round((marginCurrentQ / targetMargin) * 100)}% dari target kuartal`,
-      risiko: "Gagal memenuhi syarat bertahan di level saat ini",
-      saranCepat: "Boost aktivitas closing, daily tracking, evaluasi strategi penjualan"
+      indikator: `$${marginCurrentQ.toLocaleString()} = ${Math.round((marginCurrentQ / targetMargin) * 100)}% dari target $${targetMargin.toLocaleString()}`,
+      risiko: `Gap $${gapEws.toLocaleString()} dengan sisa ${quarterEws.sisaHari} hari — butuh $${(sisaMingguEws > 0 ? Math.ceil(gapEws / sisaMingguEws) : gapEws).toLocaleString()}/minggu`,
+      saranCepat: `Boost closing: target ${Math.ceil(gapEws / 10000)} NA dalam ${sisaMingguEws} minggu. Daily follow-up 10 prospek, joint visit 2x/minggu dengan atasan`
     });
   }
 
   if (groups.selling < 2) {
     ews.push({
       faktor: "Kemampuan Penjualan Rendah",
-      indikator: `Rata-rata skor ${groups.selling.toFixed(1)}/5`,
-      risiko: "Pipeline bisnis kering, sulit menghasilkan revenue yang konsisten",
-      saranCepat: "Latihan prospecting & closing intensif, shadowing senior, target aktivitas harian"
+      indikator: `Skor selling ${groups.selling.toFixed(1)}/5 (P1-P3 di bawah rata-rata)`,
+      risiko: `Dengan skill ini, closing rate rendah. Pipeline kering → margin stagnan atau turun`,
+      saranCepat: `Latihan presentasi & closing 3x/minggu, shadowing senior yang sudah capai target, buat script presentasi baru`
     });
   }
 
   if (groups.teamBuilding < 2 && !data.jabatan.includes("BC")) {
+    const kadEws = getKaderisasiMinimum(data.jabatan);
     ews.push({
       faktor: "Pembangunan Tim Lemah",
-      indikator: `Rata-rata skor ${groups.teamBuilding.toFixed(1)}/5`,
-      risiko: "Tidak mampu membangun organisasi, hambatan promosi",
-      saranCepat: "Fokus rekrutmen dan pembinaan kader, target minimal 1 rekrut per bulan"
+      indikator: `Skor team building ${groups.teamBuilding.toFixed(1)}/5, butuh min ${kadEws.minimum} ${kadEws.targetRole}`,
+      risiko: `Tanpa tim yang kuat, promosi mustahil dan bisnis tergantung 100% pada personal effort`,
+      saranCepat: `Rekrut minimal 1 ${kadEws.targetRole} baru per bulan. Sesi rekrutmen 3x/minggu. Manfaatkan referral tim yang ada`
     });
   }
 
   if (groups.character < 2) {
     ews.push({
       faktor: "Karakter Kepemimpinan Lemah",
-      indikator: `Rata-rata skor ${groups.character.toFixed(1)}/5`,
-      risiko: "Kehilangan kepercayaan tim, motivasi rendah, turnover tinggi",
-      saranCepat: "Coaching kepemimpinan, bangun disiplin harian, tingkatkan komunikasi dengan tim"
+      indikator: `Skor karakter ${groups.character.toFixed(1)}/5 (P11-P14 kritis)`,
+      risiko: `Trust tim rendah → turnover tinggi, moral menurun, produktivitas tim ambruk`,
+      saranCepat: `Coaching kepemimpinan 2x/minggu, daily huddle dengan tim, bangun track record konsistensi`
     });
   }
 
@@ -1046,8 +1202,11 @@ function generateProDemRecommendation(
         reason += `Save by Staff: min ${bertahan.saveByStaff.minStaff} staf + ${bertahan.saveByStaff.minTeamCount} tim ${bertahan.saveByStaff.minTeamLevel} + margin $${bertahan.saveByStaff.minNetMargin.toLocaleString()} (${saveByStaffMet ? "TERCAPAI" : "TIDAK TERCAPAI"}).`;
       }
     }
-    konsekuensi = "Tidak memenuhi syarat bertahan → demosi langsung sesuai skema ProDem.";
-    nextStep = "Evaluasi menyeluruh, coaching intensif dengan atasan langsung, recovery plan darurat.";
+    konsekuensi = `Tidak memenuhi kedua jalur bertahan (Save by Margin maupun Save by Staff) → demosi sesuai skema ProDem. Margin gap: $${(bertahan.saveByMargin - marginCurrentQ).toLocaleString()}.`;
+    const sisaHariDemosi = getCurrentQuarter().sisaHari;
+    nextStep = sisaHariDemosi > 0
+      ? `DARURAT ${sisaHariDemosi} hari: Kejar closing $${(bertahan.saveByMargin - marginCurrentQ).toLocaleString()} atau penuhi syarat Save by Staff. Eskalasi ke atasan langsung HARI INI.`
+      : `Evaluasi menyeluruh penyebab kegagalan, buat recovery plan untuk kuartal depan di level baru.`;
 
     requirements.push(
       { label: "Save by Margin", value: `$${marginCurrentQ.toLocaleString()} / $${bertahan.saveByMargin.toLocaleString()}`, met: saveByMarginMet }
@@ -1060,21 +1219,28 @@ function generateProDemRecommendation(
     }
   } else if (zonaFinal === "merah" || totalSelfScore < 45) {
     recommendation = "Pembinaan";
-    reason = `Skor 18 Pilar ${totalSelfScore}/90 berada di zona merah. Wajib coaching intensif kuartal berjalan. ` +
-      `Margin $${marginCurrentQ.toLocaleString()} ${saveByMarginMet ? "memenuhi" : "belum memenuhi"} syarat bertahan.`;
-    konsekuensi = "Pilar kritis terdeteksi → wajib coaching intensif. Jika tidak ada perbaikan → demosi di kuartal berikutnya.";
-    nextStep = "Coaching intensif dengan atasan langsung, monitoring weekly, perbaiki pilar kritis.";
+    const weakestPillars = pillarScores.filter((p: any) => p.selfScore <= 2).map((p: any) => p.pillarName);
+    reason = `Skor 18 Pilar ${totalSelfScore}/90 berada di zona merah${weakestPillars.length > 0 ? ` — pilar kritis: ${weakestPillars.slice(0, 3).join(", ")}` : ""}. ` +
+      `Margin $${marginCurrentQ.toLocaleString()} ${saveByMarginMet ? "memenuhi" : "belum memenuhi"} syarat bertahan $${bertahan.saveByMargin.toLocaleString()}.`;
+    const sisaHariPembinaan = getCurrentQuarter().sisaHari;
+    konsekuensi = `Wajib coaching intensif ${sisaHariPembinaan} hari ke depan. Jika skor pilar tidak membaik di kuartal depan → demosi otomatis.`;
+    nextStep = `Coaching 2x/minggu dengan atasan langsung selama ${Math.ceil(sisaHariPembinaan / 7)} minggu. Fokus perbaiki: ${weakestPillars.slice(0, 2).join(" dan ") || "area terlemah"}. Weekly progress report wajib.`;
     strategyType = saveByMarginMet ? "Save by Margin" : "Save by Staff";
   } else if (bertahanMet && !promosiMet) {
     recommendation = "Dipertahankan";
     strategyType = saveByMarginMet ? "Save by Margin" : "Save by Staff";
-    reason = `Syarat bertahan terpenuhi via ${strategyType}. ` +
+    const sisaHariBertahan = getCurrentQuarter().sisaHari;
+    reason = `Syarat bertahan terpenuhi via ${strategyType} (margin $${marginCurrentQ.toLocaleString()} vs target $${bertahan.saveByMargin.toLocaleString()}). ` +
       `Sebagai ${julukan.julukan}, ${julukan.deskripsi.toLowerCase()}. `;
     if (promosi) {
-      reason += `Untuk promosi ke ${promosi.nextLevel}: perlu margin $${promosi.targetMargin.toLocaleString()} dan ${promosi.targetStaff} staf aktif.`;
+      const gapMargin = promosi.targetMargin - marginCurrentQ;
+      const gapStaff = Math.max(0, promosi.targetStaff - totalTeam);
+      reason += `Gap ke promosi ${promosi.nextLevel}: ${gapMargin > 0 ? `margin masih kurang $${gapMargin.toLocaleString()}` : "margin sudah cukup"}, ${gapStaff > 0 ? `staf masih kurang ${gapStaff} orang` : "staf sudah cukup"}.`;
     }
-    konsekuensi = "Status aman. Fokus pada peningkatan untuk mencapai syarat promosi.";
-    nextStep = "Implementasi action plan 90 hari, review monthly, penuhi syarat promosi yang belum tercapai.";
+    konsekuensi = `Status aman untuk kuartal ini. ${sisaHariBertahan} hari tersisa bisa dimanfaatkan untuk push ke syarat promosi.`;
+    nextStep = promosi
+      ? `Kejar gap promosi ke ${promosi.nextLevel}: ${marginCurrentQ < promosi.targetMargin ? `closing $${(promosi.targetMargin - marginCurrentQ).toLocaleString()} lagi` : "margin OK"}, ${totalTeam < promosi.targetStaff ? `rekrut ${promosi.targetStaff - totalTeam} staf lagi` : "staf OK"}. Review progress setiap 2 minggu.`
+      : `Pertahankan konsistensi dan tingkatkan area pengembangan. Review progress setiap 2 minggu.`;
 
     requirements.push(
       { label: "Syarat Bertahan", value: strategyType, met: true },
@@ -1088,10 +1254,17 @@ function generateProDemRecommendation(
     }
   } else {
     recommendation = "Dipertahankan";
-    reason = `Performa cukup baik (Skor ${totalSelfScore}/90) sebagai ${julukan.julukan}. ` +
-      `${julukan.deskripsi}. Fondasi sudah terbangun untuk promosi periode berikutnya.`;
-    konsekuensi = "Status aman. Fokus pada peningkatan area yang masih perlu dikembangkan.";
-    nextStep = "Implementasi action plan 90 hari, review monthly, penuhi syarat promosi.";
+    const sisaHariElse = getCurrentQuarter().sisaHari;
+    reason = `Performa stabil (Skor ${totalSelfScore}/90, margin $${marginCurrentQ.toLocaleString()}) sebagai ${julukan.julukan}. ${julukan.deskripsi}.`;
+    if (promosi) {
+      const gapM = Math.max(0, promosi.targetMargin - marginCurrentQ);
+      const gapS = Math.max(0, promosi.targetStaff - totalTeam);
+      reason += ` Untuk promosi ke ${promosi.nextLevel}: ${gapM > 0 ? `perlu margin $${gapM.toLocaleString()} lagi` : "margin sudah cukup"}${gapS > 0 ? `, rekrut ${gapS} staf lagi` : ""}.`;
+    }
+    konsekuensi = `Status aman. Manfaatkan ${sisaHariElse} hari tersisa untuk membangun fondasi promosi kuartal depan.`;
+    nextStep = promosi
+      ? `Fokus ${sisaHariElse} hari: kejar syarat promosi ${promosi.nextLevel}. ${marginCurrentQ < promosi.targetMargin ? `Tambah margin $${(promosi.targetMargin - marginCurrentQ).toLocaleString()}` : "Margin OK"}, ${totalTeam < promosi.targetStaff ? `rekrut ${promosi.targetStaff - totalTeam} staf` : "staf OK"}. Evaluasi bi-weekly.`
+      : `Pertahankan performa dan fokus pengembangan area yang belum optimal. Evaluasi bi-weekly.`;
     strategyType = saveByMarginMet ? "Save by Margin" : "Save by Staff";
   }
 
@@ -1148,7 +1321,7 @@ function getNextLevel(currentLevel: string): string {
 }
 
 // ============================================
-// MAGIC SECTION - Varied & Personal
+// MAGIC SECTION - Personal & Data-Driven
 // ============================================
 
 function generateMagicSection(
@@ -1164,40 +1337,70 @@ function generateMagicSection(
   const zodiacData = ZODIAC_BOOSTERS[zodiacSign];
   const totalScore = pillarScores.reduce((sum: number, p: any) => sum + p.selfScore, 0);
   const avg = totalScore / 18;
+  const bertahan = getBertahanCriteria(data.jabatan);
+  const promosi = getPromosiCriteria(data.jabatan);
+  const quarterInfo = getCurrentQuarter();
+  const marginCurrentQ = [data.marginTimQ1, data.marginTimQ2, data.marginTimQ3, data.marginTimQ4][quarterInfo.quarterNum - 1];
+  const totalTeam = data.jumlahBC + data.jumlahSBC + data.jumlahBsM + data.jumlahSBM + data.jumlahEM + data.jumlahSEM + data.jumlahVBM;
+  const level = data.jabatan.match(/\(([A-Za-z]+)\)/)?.[1] || data.jabatan;
 
   const strongPillars = pillarScores.filter((p: any) => p.selfScore >= 4).map((p: any) => p.pillarName);
+  const weakPillars = pillarScores.filter((p: any) => p.selfScore <= 2).map((p: any) => p.pillarName);
 
-  let narasi = `${data.nama}, Anda adalah ${julukanData.julukan} — ${julukanData.deskripsi}. `;
+  let narasi = `${data.nama}, sebagai ${julukanData.julukan} — ${julukanData.deskripsi} `;
 
-  if (avg >= 4) {
-    narasi += `Penilaian diri Anda menunjukkan kepercayaan yang luar biasa terhadap kemampuan sendiri. ` +
-      `Ini adalah modal besar! Gunakan kepercayaan ini untuk mengangkat orang-orang di sekitar Anda. ` +
-      `Pemimpin sejati bukan yang paling kuat, tapi yang membuat orang lain menjadi kuat. `;
-  } else if (avg >= 3) {
-    narasi += `Anda memiliki kesadaran diri yang sehat — tidak terlalu tinggi, tidak terlalu rendah. ` +
-      `Ini menunjukkan kematangan dalam menilai kemampuan diri. ` +
-      `Dengan fondasi ini, Anda siap untuk bertumbuh secara bertahap namun pasti. `;
+  const sudahBertahan = marginCurrentQ >= bertahan.saveByMargin;
+  const sudahPromosi = promosi ? marginCurrentQ >= promosi.targetMargin : false;
+
+  if (sudahPromosi && promosi) {
+    narasi += `\n\nPerforma ${data.nama} saat ini luar biasa. Margin $${marginCurrentQ.toLocaleString()} sudah melampaui target promosi $${promosi.targetMargin.toLocaleString()}. ` +
+      `Ini bukan keberuntungan — ini hasil kerja keras dan strategi yang tepat. ` +
+      `${data.nama} sudah membuktikan bahwa level ${promosi.nextLevel} bukan mimpi, tapi langkah selanjutnya yang sangat realistis. `;
+    if (totalTeam >= (promosi.targetStaff || 0)) {
+      narasi += `Dengan tim ${totalTeam} orang yang sudah solid, semua syarat promosi sudah di depan mata. Saatnya mengklaim apa yang sudah diperjuangkan!`;
+    } else {
+      narasi += `Satu hal yang perlu dilengkapi: bangun tim hingga ${promosi.targetStaff} orang. Ini investment terakhir sebelum pintu promosi terbuka lebar.`;
+    }
+  } else if (sudahBertahan) {
+    narasi += `\n\nKabar baiknya: posisi ${level} sudah aman dengan margin $${marginCurrentQ.toLocaleString()} (target bertahan $${bertahan.saveByMargin.toLocaleString()}). ` +
+      `Tapi ${data.nama} bukan tipe yang puas hanya "aman". `;
+    if (promosi) {
+      const gapPromosi = promosi.targetMargin - marginCurrentQ;
+      narasi += `Gap ke promosi ${promosi.nextLevel} tinggal $${gapPromosi.toLocaleString()}. Dengan ${quarterInfo.sisaHari} hari tersisa dan momentum yang sudah terbangun, ini sangat achievable. ` +
+        `Bayangkan: kuartal depan ${data.nama} sudah berdiri di level ${promosi.nextLevel}. Itu bukan soal kalau, tapi soal kapan.`;
+    }
+  } else if (marginCurrentQ >= 0) {
+    const gap = bertahan.saveByMargin - marginCurrentQ;
+    const sisaMinggu = Math.ceil(quarterInfo.sisaHari / 7);
+    narasi += `\n\nSituasi saat ini menantang — margin $${marginCurrentQ.toLocaleString()} dari target $${bertahan.saveByMargin.toLocaleString()} berarti masih ada gap $${gap.toLocaleString()}. ` +
+      `Tapi ${sisaMinggu} minggu tersisa itu BUKAN waktu yang sedikit jika dimanfaatkan dengan benar. ` +
+      `Banyak orang di posisi yang sama sudah berhasil comeback. Kuncinya: konsistensi harian, bukan miracle sekali jadi. ` +
+      `Setiap hari closing $${Math.ceil(gap / Math.max(quarterInfo.sisaHari, 1)).toLocaleString()} membawa ${data.nama} semakin dekat.`;
   } else {
-    narasi += `Kejujuran Anda dalam menilai diri sendiri adalah tanda keberanian yang luar biasa. ` +
-      `Banyak orang memilih untuk over-claim, tapi Anda memilih untuk jujur. ` +
-      `Dari kejujuran inilah pertumbuhan sejati dimulai. Setiap langkah kecil yang Anda ambil membawa Anda lebih dekat ke puncak. `;
+    narasi += `\n\nMari bicara jujur: margin minus $${Math.abs(marginCurrentQ).toLocaleString()} memang berat. Tapi ini bukan akhir cerita — ini adalah titik balik. ` +
+      `Sejarah membuktikan bahwa comeback terbesar selalu dimulai dari titik terendah. ` +
+      `Yang membedakan pemenang dari yang lain bukan kondisi awalnya, tapi apa yang dilakukan SETELAH menyadari posisinya. ` +
+      `${data.nama} sudah di sini, sudah melihat angkanya dengan jujur — itu langkah pertama yang paling penting.`;
   }
 
   if (strongPillars.length > 0) {
-    narasi += `\n\nKekuatan Anda di ${strongPillars.slice(0, 2).join(" dan ")} adalah senjata rahasia yang harus terus diasah. `;
+    narasi += `\n\nKekuatan ${data.nama} di ${strongPillars.slice(0, 2).join(" dan ")} bukan kebetulan — ini DNA yang membedakan ${data.nama} dari yang lain. Gunakan ini sebagai senjata utama.`;
+  }
+  if (weakPillars.length > 0 && weakPillars.length <= 3) {
+    narasi += ` Area ${weakPillars.slice(0, 2).join(" dan ")} memang perlu perhatian, tapi ingat: kelemahan yang disadari sudah setengah diperbaiki.`;
   }
 
-  narasi += `\n\n90 hari ke depan adalah golden period Anda. Setiap hari adalah kesempatan untuk menjadi versi terbaik dari diri Anda!`;
+  narasi += `\n\n${quarterInfo.sisaHari} hari ke depan adalah battleground ${data.nama}. Setiap hari yang dilewati tanpa aksi adalah hari yang hilang. Tapi setiap hari yang dieksekusi dengan penuh adalah batu bata yang membangun empire.`;
 
   const zodiakBooster = generasi === "Gen Z" ? zodiacData.genZ : zodiacData.millennial;
 
-  const coachingHighlight = `Key Focus: ${coachingPoints[0]}. Ini adalah langkah pertama dan terpenting untuk membuka pintu kesuksesan Anda di kuartal ini.`;
+  const coachingHighlight = `Prioritas #1 untuk ${data.nama}: ${coachingPoints[0]}`;
 
-  const callToAction = `3 Langkah Konkret untuk 90 Hari:\n` +
-    `1. ${coachingPoints[0]}\n` +
-    `2. ${coachingPoints[1] || "Tingkatkan skill melalui pelatihan dan praktik"}\n` +
-    `3. ${coachingPoints[2] || "Bangun kebiasaan positif yang konsisten"}\n` +
-    `Eksekusi dengan disiplin, pantau progress setiap minggu, dan rayakan setiap pencapaian kecil!`;
+  const sisaHari = quarterInfo.sisaHari;
+  const periodeLabel = sisaHari <= 20 ? `${sisaHari} Hari Sprint` : sisaHari <= 45 ? `${sisaHari} Hari (2 Fase)` : `${sisaHari} Hari (3 Fase)`;
+  const callToAction = `Battle Plan ${periodeLabel}:\n` +
+    coachingPoints.slice(0, 4).map((cp, i) => `${i + 1}. ${cp}`).join('\n') +
+    `\n\nSatu hari tanpa eksekusi = satu hari lebih dekat ke deadline tanpa progress. Mulai SEKARANG.`;
 
   const quote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
 
