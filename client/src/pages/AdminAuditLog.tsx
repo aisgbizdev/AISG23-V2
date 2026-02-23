@@ -205,7 +205,7 @@ export default function AdminAuditLog() {
                       <div className="flex items-center gap-2 text-sm">
                         <Award className="w-4 h-4 text-pink-400" />
                         <span className="text-muted-foreground">
-                          Reality: {audit.totalRealityScore ? (audit.totalRealityScore / 18).toFixed(1) : "N/A"}/5.0
+                          Skor: {(audit.totalSelfScore || audit.totalRealityScore) ? ((audit.totalSelfScore || audit.totalRealityScore || 0) / 18).toFixed(1) : "N/A"}/5.0
                         </span>
                       </div>
                     </div>

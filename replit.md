@@ -2,7 +2,15 @@
 
 ## Overview
 
-AiSG (Audit Intelligence System Growth) is a corporate enterprise performance auditing platform designed to evaluate employee performance and leadership against a standardized 18 Pilar framework. It processes quarterly performance metrics and behavioral assessments to generate comprehensive audit reports with ProDem (Promotion-Demotion) recommendations. Key features include a 5-step multi-form data input, 12-section professional audit reports, a 3-Source AI Chat System (ChatGPT → Gemini → Internal Knowledge Base), PDF export, and a "Magic Section" for personalized motivational content. The system is production-ready, featuring a modern Gen-Z UI/UX, a quarterly-based audit system with a Reality Score Calculator, and robust enterprise-grade authentication with role-based access control (RBAC).
+AiSG (Audit Intelligence System Growth) is a corporate enterprise performance auditing platform designed to evaluate employee performance and leadership against a standardized 18 Pilar framework. It processes quarterly performance metrics and psychological self-assessment to generate comprehensive audit reports with ProDem (Promotion-Demotion) recommendations. Key features include a 5-step multi-form data input, 12-section professional audit reports, a 3-Source AI Chat System (ChatGPT → Gemini → Internal Knowledge Base), PDF export, and a "Magic Section" for personalized motivational content. The system is production-ready, featuring a modern Gen-Z UI/UX, a quarterly-based audit system with Psychological Profile Analysis, and robust enterprise-grade authentication with role-based access control (RBAC).
+
+### Recent Changes (Feb 2026)
+- **18 Pilar Overhaul**: Changed from "Self vs Reality Score comparison" to "Pure Self-Assessment with Psychological Narrative". No more per-pilar reality scores. All 18 pilar answers produce ONE psychological narrative conclusion about character, strengths, and development areas.
+- **5 Dimension Groups**: Pillars organized into Selling Skills (P1-P3), Team Building (P4,P7,P8,P10), Performance (P5,P6,P9), Character & Leadership (P11-P14), Growth & Innovation (P15-P18).
+- **15+ Varied Julukan**: Dynamic julukan based on pillar group patterns (The Commander, Empire Builder, Trusted Advisor, Closer, Architect, etc.) instead of just 4 fixed profiles.
+- **SWOT/ProDem/Magic Section**: Now character & mindset-driven narratives, not numeric gap calculations.
+- **Target Margin Fix**: Targets are per-month (×3 for quarterly). Target NA = monthly margin / 20k.
+- **Kaderisasi Standards**: SBC min 3 BC, BSM min 2 SBC, SBM min 2 BSM, EM min 2 SBM, SEM min 2 EM, VBM min 2 SEM.
 
 ## User Preferences
 
@@ -25,7 +33,7 @@ AiSG (Audit Intelligence System Growth) is a corporate enterprise performance au
 **UI Component System**: shadcn/ui components (Radix UI primitives) with "new-york" style, adapted Material Design principles, and dark mode as the primary theme. Custom color system for zone-based status indicators. Modern Gen-Z design with gradients and glassmorphism, Inter font, and enhanced iconography using Lucide React.
 **State Management**: TanStack Query for server state, React Hook Form with Zod validation for forms.
 **Routing**: Wouter for client-side routing.
-**Key Design Decisions**: Modern Gen-Z aesthetic with gradients and animations, sticky navigation elements, full mobile responsiveness (PWA optimized), zone color-coding for visual feedback, and detailed gap insights in 18 Pilar analysis.
+**Key Design Decisions**: Modern Gen-Z aesthetic with gradients and animations, sticky navigation elements, full mobile responsiveness (PWA optimized), zone color-coding for visual feedback, and psychological narrative insights in 18 Pilar analysis.
 
 ### Backend Architecture
 
@@ -33,7 +41,7 @@ AiSG (Audit Intelligence System Growth) is a corporate enterprise performance au
 **API Design**: RESTful JSON API for audit management, AI chat, and admin operations.
 **Admin Endpoints**: `/api/dashboard/summary` (global stats + recent audits), `/api/admin/users` (all users), `/api/admin/users/inactive` (users >90 days without audits), `/api/admin/users/:id` (delete user), `/api/admin/audit-log` (all audits including soft-deleted).
 **Soft-Delete Endpoints**: `PATCH /api/audit/:id/soft-delete` (user soft-delete), `DELETE /api/audit/:id` (admin permanent delete).
-**Business Logic Layer**: Centralized, handling Reality Score Calculation, Performance/Behavioral/Final Zone Analysis, Employee Profile Generation, SWOT Analysis, ProDem Recommendation, Action Plan 30-60-90, EWS, and the Magic Section.
+**Business Logic Layer**: Centralized, handling Psychological Self-Assessment Analysis, Performance/Behavioral/Final Zone Analysis, Employee Profile Generation, SWOT Analysis, ProDem Recommendation, Action Plan 30-60-90, EWS, and the Magic Section.
 **AI Chat Architecture**: A 3-source fallback system: Primary (OpenAI ChatGPT), Secondary (Google Gemini), Tertiary (Internal Knowledge Base for guaranteed responses).
 **Knowledge Base**: Covers 15+ business topics including leadership, teamwork, sales, recruitment, planning, and SWOT analysis.
 **Validation**: Zod schemas shared between client and server.

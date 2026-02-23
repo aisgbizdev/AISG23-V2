@@ -149,18 +149,17 @@ export default function AuditDetail() {
           <p className="text-sm sm:text-base leading-relaxed">{report?.executiveSummary}</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6">
             <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm border border-amber-500/20">
-              <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-500 to-yellow-600 bg-clip-text text-transparent">{audit.totalRealityScore}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Reality Score</p>
+              <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-500 to-yellow-600 bg-clip-text text-transparent">{audit.totalSelfScore}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Skor Total</p>
             </div>
             <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm">
-              <p className="text-xl sm:text-2xl font-bold">{audit.totalSelfScore}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Self Score</p>
+              <p className="text-xl sm:text-2xl font-bold">{(audit.totalSelfScore / 18).toFixed(1)}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Rata-rata /5</p>
             </div>
             <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm">
-              <p className={`text-xl sm:text-2xl font-bold ${audit.totalGap > 0 ? 'text-yellow-500' : audit.totalGap < 0 ? 'text-red-500' : 'text-green-500'}`}>
-                {audit.totalGap > 0 ? '+' : ''}{audit.totalGap}
-              </p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Gap</p>
+              <Badge className={`${getProfilBadge(audit.profil)} text-xs sm:text-sm border`}>
+                {audit.profil}
+              </Badge>
             </div>
             <div className="text-center p-3 bg-background/60 rounded-xl backdrop-blur-sm flex items-center justify-center">
               <Badge className={`${getZonaBadgeColor(audit.zonaFinal)} text-xs sm:text-sm border`}>
@@ -276,101 +275,97 @@ export default function AuditDetail() {
             </TabsList>
           </div>
 
-          {/* 18 Pilar Tab */}
+          {/* 18 Pilar Tab - Psychological Self-Assessment */}
           <TabsContent value="pilar" className="pt-8 sm:pt-6">
-            <Card className="p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">18 Pilar Reality Score</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
-                Sistem menganalisis self-assessment Anda dan membandingkannya dengan data real performa untuk menghasilkan Reality Score
-              </p>
-              <div className="space-y-3 sm:space-y-4">
-                {audit.pillarAnswers && Array.isArray(audit.pillarAnswers) && audit.pillarAnswers.map((pilar: any) => (
-                  <div
-                    key={pilar.pillarId}
-                    className="rounded-xl border bg-card/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/30"
-                    data-testid={`pilar-${pilar.pillarId}`}
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold mb-1 text-sm sm:text-base">{pilar.pillarName}</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{pilar.insight}</p>
-                      </div>
-                      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                        <div className="text-center px-2 sm:px-3 py-2 rounded-lg bg-muted/50">
-                          <p className="text-xl sm:text-2xl font-bold">{pilar.selfScore}</p>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground">Self</p>
-                        </div>
-                        <div className="w-8 sm:w-10 text-center">
-                          {pilar.gap === 0 ? (
-                            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 mx-auto" />
-                          ) : pilar.gap > 0 ? (
-                            <span className="text-base sm:text-lg text-yellow-500 font-bold">+{pilar.gap}</span>
-                          ) : (
-                            <span className="text-base sm:text-lg text-red-500 font-bold">{pilar.gap}</span>
-                          )}
-                        </div>
-                        <div className="text-center px-2 sm:px-3 py-2 rounded-lg bg-primary/10">
-                          <p className="text-xl sm:text-2xl font-bold text-primary">{pilar.realityScore}</p>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground">Reality</p>
-                        </div>
-                      </div>
+            <div className="space-y-6">
+              {/* Psychological Narrative Conclusion */}
+              {report?.psikologiNarasi && (
+                <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent border-blue-500/20">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 p-2">
+                      <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
                     </div>
-                    
-                    {/* Gap Analysis & Recommendation - Only show if there's a gap */}
-                    {pilar.gap !== 0 && (
-                      <div className={`px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t ${
-                        pilar.gap > 0 ? 'bg-yellow-500/5 border-yellow-500/20' : 'bg-red-500/5 border-red-500/20'
-                      }`}>
-                        <div className="flex items-start gap-2 mb-2">
-                          {pilar.gap > 0 ? (
-                            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 shrink-0 mt-0.5" />
-                          ) : (
-                            <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 shrink-0 mt-0.5" />
-                          )}
-                          <div className="flex-1">
-                            <p className={`text-xs sm:text-sm font-semibold mb-1 ${
-                              pilar.gap > 0 ? 'text-yellow-700' : 'text-red-700'
-                            }`}>
-                              {pilar.gap > 0 ? 'Overestimasi' : 'Underestimasi'} ({Math.abs(pilar.gap)} poin)
-                            </p>
-                            <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-                              {pilar.gap > 0 
-                                ? `Self-assessment Anda lebih tinggi ${Math.abs(pilar.gap)} poin dari reality score. Ini menunjukkan persepsi diri yang mungkin perlu disesuaikan dengan data performa aktual.`
-                                : `Reality score Anda lebih tinggi ${Math.abs(pilar.gap)} poin dari self-assessment. Ini menunjukkan Anda memiliki potensi yang belum Anda sadari sepenuhnya.`
-                              }
-                            </p>
-                            <div className="flex items-start gap-1.5 bg-background/50 rounded-lg p-2 sm:p-3">
-                              <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0 mt-0.5" />
-                              <div>
-                                <p className="text-xs font-medium text-primary mb-1">Rekomendasi Perbaikan:</p>
-                                <p className="text-xs text-foreground/90">
-                                  {pilar.gap > 0
-                                    ? `Fokus pada peningkatan kinerja aktual di area ini. Tinjau metrik performa, identifikasi hambatan, dan buat action plan konkret untuk meningkatkan hasil dari ${pilar.realityScore} menuju target ${pilar.selfScore}.`
-                                    : `Tingkatkan kepercayaan diri Anda. Data menunjukkan performa Anda sudah baik (${pilar.realityScore}). Akui pencapaian ini dan manfaatkan momentum untuk terus berkembang.`
-                                  }
-                                </p>
-                              </div>
-                            </div>
+                    <h2 className="text-lg sm:text-xl font-bold">Kesimpulan Profil Psikologi</h2>
+                  </div>
+                  <div className="text-sm sm:text-base leading-relaxed whitespace-pre-line">{report.psikologiNarasi}</div>
+                </Card>
+              )}
+
+              {/* Group Summaries */}
+              {report?.groupSummaries && Array.isArray(report.groupSummaries) && (
+                <Card className="p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4">Ringkasan per Dimensi</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    {report.groupSummaries.map((group: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className={`p-4 rounded-xl border transition-all ${
+                          group.level === "Kuat" ? "border-green-500/30 bg-green-500/5" :
+                          group.level === "Cukup" ? "border-blue-500/30 bg-blue-500/5" :
+                          "border-yellow-500/30 bg-yellow-500/5"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-lg">{group.icon}</span>
+                          <Badge className={`text-[10px] ${
+                            group.level === "Kuat" ? "bg-green-500/20 text-green-600 border-green-500/30" :
+                            group.level === "Cukup" ? "bg-blue-500/20 text-blue-600 border-blue-500/30" :
+                            "bg-yellow-500/20 text-yellow-600 border-yellow-500/30"
+                          } border`}>
+                            {group.level}
+                          </Badge>
+                        </div>
+                        <h3 className="font-semibold text-sm mb-1">{group.groupName}</h3>
+                        <p className="text-2xl font-bold mb-2">{group.average}<span className="text-sm text-muted-foreground font-normal">/5</span></p>
+                        <p className="text-xs text-muted-foreground">{group.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
+
+              {/* Individual Pillar Scores */}
+              <Card className="p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Penilaian Diri 18 Pilar</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
+                  Penilaian subjektif Anda terhadap 18 dimensi kompetensi beserta insight pengembangan diri
+                </p>
+                <div className="space-y-3 sm:space-y-4">
+                  {audit.pillarAnswers && Array.isArray(audit.pillarAnswers) && audit.pillarAnswers.map((pilar: any) => (
+                    <div
+                      key={pilar.pillarId}
+                      className="rounded-xl border bg-card/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/30"
+                      data-testid={`pilar-${pilar.pillarId}`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold mb-1 text-sm sm:text-base">{pilar.pillarName}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{pilar.insight}</p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <div className="text-center px-3 py-2 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                            <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-500 to-yellow-600 bg-clip-text text-transparent">{pilar.selfScore}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">Skor</p>
+                          </div>
+                          <div className="flex gap-0.5 ml-2">
+                            {[1, 2, 3, 4, 5].map(i => (
+                              <div
+                                key={i}
+                                className={`w-2 h-6 sm:h-8 rounded-sm ${
+                                  i <= pilar.selfScore
+                                    ? pilar.selfScore >= 4 ? 'bg-green-500' : pilar.selfScore >= 3 ? 'bg-blue-500' : 'bg-yellow-500'
+                                    : 'bg-muted/30'
+                                }`}
+                              />
+                            ))}
                           </div>
                         </div>
                       </div>
-                    )}
-
-                    {/* Perfect Score */}
-                    {pilar.gap === 0 && (
-                      <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t bg-green-500/5 border-green-500/20">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 shrink-0" />
-                          <p className="text-xs sm:text-sm text-green-700 font-medium">
-                            Self-assessment sesuai dengan reality score - Persepsi diri Anda akurat!
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </Card>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* SWOT & Action Tab */}

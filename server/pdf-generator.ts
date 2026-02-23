@@ -25,6 +25,7 @@ export function generateAuditPDF(audit: Audit): typeof PDFDocument {
   doc.fillColor("#666");
   doc.text(`Report ID: ${audit.id}`);
   doc.text(`Generated: ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`);
+  doc.fillColor("#000");
   doc.moveDown(2);
   
   doc.fontSize(16).font("Helvetica-Bold").text("Personal Information");
@@ -42,16 +43,34 @@ export function generateAuditPDF(audit: Audit): typeof PDFDocument {
   doc.text(report.executiveSummary, { align: "justify" });
   doc.moveDown(1.5);
   
-  doc.fontSize(16).font("Helvetica-Bold").text("Performance Metrics");
+  doc.fontSize(16).font("Helvetica-Bold").text("Profil Penilaian");
   doc.fontSize(11).font("Helvetica");
   doc.moveDown(0.5);
-  doc.text(`Reality Score: ${audit.totalRealityScore}/90`);
-  doc.text(`Self Score: ${audit.totalSelfScore}/90`);
-  doc.text(`Gap: ${audit.totalGap}`);
+  doc.text(`Skor Total: ${audit.totalSelfScore}/90`);
+  doc.text(`Rata-rata: ${(audit.totalSelfScore / 18).toFixed(1)}/5`);
   doc.text(`Profil: ${audit.profil}`);
   doc.text(`Zona: ${audit.zonaFinal.toUpperCase()}`);
+  if (magic?.julukan) {
+    doc.text(`Julukan: ${magic.julukan}`);
+  }
   doc.moveDown(1.5);
+
+  if (report?.psikologiNarasi) {
+    doc.addPage();
+    doc.fontSize(16).font("Helvetica-Bold").text("Kesimpulan Profil Psikologi");
+    doc.fontSize(11).font("Helvetica");
+    doc.moveDown(0.5);
+    doc.text(report.psikologiNarasi, { align: "justify" });
+    doc.moveDown(1.5);
+  }
   
+  if (!report?.swotAnalysis || !report?.actionPlan) {
+    doc.addPage();
+    doc.fontSize(12).font("Helvetica").text("Report data incomplete. Please create a new audit for full analysis.");
+    doc.end();
+    return doc;
+  }
+
   doc.addPage();
   doc.fontSize(16).font("Helvetica-Bold").text("SWOT Analysis");
   doc.fontSize(11).font("Helvetica");
@@ -129,7 +148,8 @@ export function generateAuditPDF(audit: Audit): typeof PDFDocument {
   doc.fontSize(11).font("Helvetica-Oblique").text(`"${magic.quote}"`, { align: "center" });
   doc.moveDown(1.5);
   
-  doc.fontSize(16).font("Helvetica-Bold").text("18 Pilar Performance", { underline: true });
+  doc.addPage();
+  doc.fontSize(16).font("Helvetica-Bold").text("Penilaian Diri 18 Pilar", { underline: true });
   doc.fontSize(11).font("Helvetica");
   doc.moveDown(0.5);
   
@@ -140,8 +160,8 @@ export function generateAuditPDF(audit: Audit): typeof PDFDocument {
     }
     doc.fontSize(11).font("Helvetica-Bold").text(`${pilar.pillarName}`);
     doc.fontSize(10).font("Helvetica");
-    doc.text(`Self Score: ${pilar.selfScore}/5 | Reality Score: ${pilar.realityScore}/5 | Gap: ${pilar.gap}`, { indent: 15 });
-    doc.text(`Insight: ${pilar.insight}`, { indent: 15, align: "justify" });
+    doc.text(`Skor: ${pilar.selfScore}/5`, { indent: 15 });
+    doc.text(`${pilar.insight}`, { indent: 15, align: "justify" });
     doc.moveDown(0.3);
   });
   
