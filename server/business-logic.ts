@@ -286,25 +286,20 @@ function getZodiacSign(tanggalLahir: string): string {
   return "Capricorn";
 }
 
-function getMonthlyTargetMargin(jabatan: string): number {
-  if (jabatan.includes("VBM")) return 55000;
-  if (jabatan.includes("SEM")) return 45000;
-  if (jabatan.includes("SBM")) return 25000;
-  if (jabatan.includes("BSM") || jabatan.includes("BsM")) return 15000;
-  if (jabatan.includes("SBC")) return 10000;
-  if (jabatan.includes("EM")) return 35000;
-  if (jabatan.includes("BC")) return 5000;
-  return 5000;
-}
-
 function getQuarterlyTargetMargin(jabatan: string): number {
-  return getMonthlyTargetMargin(jabatan) * 3;
+  if (jabatan.includes("VBM")) return 500000;
+  if (jabatan.includes("SEM")) return 300000;
+  if (jabatan.includes("SBM")) return 150000;
+  if (jabatan.includes("BSM") || jabatan.includes("BsM")) return 75000;
+  if (jabatan.includes("EM")) return 200000;
+  if (jabatan.includes("SBC")) return 10000;
+  if (jabatan.includes("BC")) return 10000;
+  return 10000;
 }
 
 function getTargetNA(jabatan: string): number {
-  const monthlyMargin = getMonthlyTargetMargin(jabatan);
-  const monthlyNA = monthlyMargin / 20000;
-  return Math.max(1, Math.ceil(monthlyNA * 3));
+  if (jabatan.includes("SBC") || jabatan.includes("BC")) return 1;
+  return Math.max(1, Math.ceil(getQuarterlyTargetMargin(jabatan) / 20000));
 }
 
 function getExpectedTeamByLevel(jabatan: string): number {
@@ -312,21 +307,105 @@ function getExpectedTeamByLevel(jabatan: string): number {
   if (jabatan.includes("SEM")) return 40;
   if (jabatan.includes("SBM")) return 20;
   if (jabatan.includes("BSM") || jabatan.includes("BsM")) return 10;
-  if (jabatan.includes("SBC")) return 3;
   if (jabatan.includes("EM")) return 30;
-  if (jabatan.includes("BC")) return 0;
+  if (jabatan.includes("SBC")) return 3;
+  if (jabatan.includes("BC")) return 3;
   return 0;
 }
 
 function getKaderisasiMinimum(jabatan: string): { level: string; minimum: number; targetRole: string } {
-  if (jabatan.includes("VBM")) return { level: "VBM", minimum: 2, targetRole: "SEM" };
-  if (jabatan.includes("SEM")) return { level: "SEM", minimum: 2, targetRole: "EM" };
-  if (jabatan.includes("SBM")) return { level: "SBM", minimum: 2, targetRole: "BSM" };
-  if (jabatan.includes("BSM") || jabatan.includes("BsM")) return { level: "BSM", minimum: 2, targetRole: "SBC" };
-  if (jabatan.includes("SBC")) return { level: "SBC", minimum: 3, targetRole: "BC" };
-  if (jabatan.includes("EM")) return { level: "EM", minimum: 2, targetRole: "SBM" };
-  if (jabatan.includes("BC")) return { level: "BC", minimum: 0, targetRole: "" };
+  if (jabatan.includes("VBM")) return { level: "VBM", minimum: 2, targetRole: "SBM" };
+  if (jabatan.includes("SEM")) return { level: "SEM", minimum: 2, targetRole: "BSM" };
+  if (jabatan.includes("SBM")) return { level: "SBM", minimum: 2, targetRole: "SBC" };
+  if (jabatan.includes("BSM") || jabatan.includes("BsM")) return { level: "BSM", minimum: 1, targetRole: "SBC" };
+  if (jabatan.includes("EM")) return { level: "EM", minimum: 2, targetRole: "SBC" };
+  if (jabatan.includes("SBC")) return { level: "SBC", minimum: 3, targetRole: "BC/SBC" };
+  if (jabatan.includes("BC")) return { level: "BC", minimum: 3, targetRole: "MGM" };
   return { level: "BC", minimum: 0, targetRole: "" };
+}
+
+interface ProdemBertahanCriteria {
+  saveByMargin: number;
+  saveByStaff: {
+    minStaff: number;
+    minTeamLevel: string;
+    minTeamCount: number;
+    minNetMargin: number;
+  } | null;
+}
+
+function getBertahanCriteria(jabatan: string): ProdemBertahanCriteria {
+  if (jabatan.includes("VBM")) return {
+    saveByMargin: 500000,
+    saveByStaff: { minStaff: 35, minTeamLevel: "SBM", minTeamCount: 2, minNetMargin: 250000 }
+  };
+  if (jabatan.includes("SEM")) return {
+    saveByMargin: 300000,
+    saveByStaff: { minStaff: 25, minTeamLevel: "BSM", minTeamCount: 2, minNetMargin: 150000 }
+  };
+  if (jabatan.includes("EM")) return {
+    saveByMargin: 200000,
+    saveByStaff: { minStaff: 20, minTeamLevel: "SBC", minTeamCount: 2, minNetMargin: 100000 }
+  };
+  if (jabatan.includes("SBM")) return {
+    saveByMargin: 150000,
+    saveByStaff: { minStaff: 15, minTeamLevel: "SBC", minTeamCount: 2, minNetMargin: 75000 }
+  };
+  if (jabatan.includes("BSM") || jabatan.includes("BsM")) return {
+    saveByMargin: 75000,
+    saveByStaff: { minStaff: 5, minTeamLevel: "SBC", minTeamCount: 1, minNetMargin: 40000 }
+  };
+  if (jabatan.includes("SBC")) return {
+    saveByMargin: 10000,
+    saveByStaff: null
+  };
+  return { saveByMargin: 10000, saveByStaff: null };
+}
+
+interface ProdemPromosiCriteria {
+  targetMargin: number;
+  targetStaff: number;
+  teamRequirements: Array<{ role: string; count: number }>;
+  nextLevel: string;
+}
+
+function getPromosiCriteria(jabatan: string): ProdemPromosiCriteria | null {
+  if (jabatan.includes("VBM")) return {
+    targetMargin: 500000, targetStaff: 50,
+    teamRequirements: [{ role: "SBM", count: 2 }, { role: "BSM", count: 1 }],
+    nextLevel: "BM"
+  };
+  if (jabatan.includes("SEM")) return {
+    targetMargin: 400000, targetStaff: 40,
+    teamRequirements: [{ role: "BSM", count: 2 }, { role: "SBC", count: 1 }],
+    nextLevel: "VBM"
+  };
+  if (jabatan.includes("EM")) return {
+    targetMargin: 300000, targetStaff: 30,
+    teamRequirements: [{ role: "BSM", count: 1 }, { role: "SBC", count: 2 }],
+    nextLevel: "SEM"
+  };
+  if (jabatan.includes("SBM")) return {
+    targetMargin: 200000, targetStaff: 20,
+    teamRequirements: [{ role: "SBC", count: 3 }],
+    nextLevel: "EM"
+  };
+  if (jabatan.includes("BSM") || jabatan.includes("BsM")) return {
+    targetMargin: 125000, targetStaff: 10,
+    teamRequirements: [{ role: "SBC", count: 2 }],
+    nextLevel: "SBM"
+  };
+  if (jabatan.includes("SBC")) return {
+    targetMargin: 10000, targetStaff: 3,
+    teamRequirements: [{ role: "MGM", count: 3 }],
+    nextLevel: "BSM"
+  };
+  if (jabatan.includes("BC")) return {
+    targetMargin: 10000, targetStaff: 3,
+    teamRequirements: [{ role: "MGM", count: 3 }],
+    nextLevel: "SBC"
+  };
+  return null;
 }
 
 // ============================================
@@ -882,10 +961,43 @@ function generateProDemRecommendation(
   julukan: { julukan: string; deskripsi: string }
 ) {
   const level = data.jabatan.match(/\(([A-Za-z]+)\)/)?.[1] || data.jabatan;
-  const targetMargin = getQuarterlyTargetMargin(data.jabatan);
+  const bertahan = getBertahanCriteria(data.jabatan);
+  const promosi = getPromosiCriteria(data.jabatan);
   const totalTeam = data.jumlahBC + data.jumlahSBC + data.jumlahBsM + data.jumlahSBM + data.jumlahEM + data.jumlahSEM + data.jumlahVBM;
   const kaderisasi = getKaderisasiMinimum(data.jabatan);
-  const avg = totalSelfScore / 18;
+
+  const isSBCorBC = data.jabatan.includes("SBC") || (data.jabatan.includes("BC") && !data.jabatan.includes("SBC"));
+  const naCurrentQ = [data.naTimQ1, data.naTimQ2, data.naTimQ3, data.naTimQ4].find(n => n > 0) || 0;
+
+  let saveByMarginMet = false;
+  if (isSBCorBC) {
+    saveByMarginMet = marginCurrentQ >= bertahan.saveByMargin || naCurrentQ >= 1 || totalTeam >= 3;
+  } else {
+    saveByMarginMet = marginCurrentQ >= bertahan.saveByMargin;
+  }
+
+  let saveByStaffMet = false;
+  if (bertahan.saveByStaff) {
+    const staffOk = totalTeam >= bertahan.saveByStaff.minStaff;
+    const marginOk = marginCurrentQ >= bertahan.saveByStaff.minNetMargin;
+    const teamLevelCount = getTeamCountByRole(data, bertahan.saveByStaff.minTeamLevel);
+    const teamOk = teamLevelCount >= bertahan.saveByStaff.minTeamCount;
+    saveByStaffMet = staffOk && marginOk && teamOk;
+  }
+
+  const bertahanMet = saveByMarginMet || saveByStaffMet;
+
+  let promosiMet = false;
+  if (promosi) {
+    const marginOk = marginCurrentQ >= promosi.targetMargin;
+    const staffOk = totalTeam >= promosi.targetStaff;
+    let teamReqOk = true;
+    for (const req of promosi.teamRequirements) {
+      const count = getTeamCountByRole(data, req.role);
+      if (count < req.count) teamReqOk = false;
+    }
+    promosiMet = marginOk && staffOk && teamReqOk;
+  }
 
   let recommendation: "Promosi" | "Dipertahankan" | "Pembinaan" | "Demosi";
   let nextLevel = "";
@@ -895,47 +1007,110 @@ function generateProDemRecommendation(
   let strategyType: "Save by Margin" | "Save by Staff" | "N/A" = "N/A";
   const requirements: Array<{ label: string; value: string; met: boolean }> = [];
 
-  if (marginCurrentQ < 0) {
-    recommendation = "Demosi";
-    reason = `Margin NEGATIF ($${marginCurrentQ.toLocaleString()}) menunjukkan kerugian di kuartal ini. ` +
-      `Sebagai ${julukan.julukan}, Anda memiliki potensi untuk bangkit, namun kondisi finansial saat ini memerlukan tindakan darurat.`;
-    konsekuensi = "Margin negatif adalah indikator kritis. Tanpa recovery dalam 30 hari, proses demosi akan dimulai.";
-    nextStep = "Evaluasi menyeluruh penyebab kerugian, coaching intensif harian, dan recovery plan darurat bersama atasan.";
-  } else if (zonaFinal === "merah" || totalSelfScore < 45) {
-    recommendation = "Demosi";
-    reason = `Skor penilaian diri ${totalSelfScore}/90 berada di zona merah, dikombinasikan dengan margin $${marginCurrentQ.toLocaleString()}. ` +
-      `Profil ${julukan.julukan} menunjukkan perlu evaluasi menyeluruh di hampir semua aspek.`;
-    konsekuensi = "Status dalam pengawasan ketat. Tanpa perbaikan signifikan dalam 30 hari, demosi diproses.";
-    nextStep = "Coaching intensif dengan atasan langsung, monitoring weekly, dan action plan recovery.";
-  } else if (zonaFinal === "kuning" || totalSelfScore < 65) {
-    recommendation = "Pembinaan";
-    reason = `Skor ${totalSelfScore}/90 di zona kuning. Sebagai ${julukan.julukan}, Anda menunjukkan ${julukan.deskripsi.toLowerCase()}. ` +
-      `Margin $${marginCurrentQ.toLocaleString()} dari target $${targetMargin.toLocaleString()} menunjukkan perlu peningkatan.`;
-    konsekuensi = "Status dipertahankan namun belum eligible untuk promosi. Fokus pada pengembangan area lemah.";
-    nextStep = "Implementasi action plan 60 hari, review bi-weekly dengan atasan, fokus pada area pengembangan prioritas.";
-    strategyType = marginCurrentQ >= targetMargin * 0.75 ? "Save by Margin" : "Save by Staff";
-  } else if (totalSelfScore >= 75 && marginCurrentQ >= targetMargin) {
+  if (promosiMet && totalSelfScore >= 65 && zonaFinal !== "merah") {
     recommendation = "Promosi";
-    nextLevel = getNextLevel(level);
-    reason = `Skor ${totalSelfScore}/90 di zona hijau dengan margin $${marginCurrentQ.toLocaleString()} melampaui target. ` +
-      `Profil ${julukan.julukan} (${julukan.deskripsi.toLowerCase()}) menunjukkan kesiapan untuk tantangan di level berikutnya.`;
+    nextLevel = promosi?.nextLevel || getNextLevel(level);
+    reason = `Margin $${marginCurrentQ.toLocaleString()} memenuhi target promosi $${promosi!.targetMargin.toLocaleString()}/kuartal. ` +
+      `Tim ${totalTeam} orang memenuhi syarat ${promosi!.targetStaff} staf aktif. ` +
+      `Sebagai ${julukan.julukan}, ${julukan.deskripsi.toLowerCase()}.`;
     konsekuensi = "Promosi diproses di akhir kuartal jika konsistensi performa terjaga.";
     nextStep = `Persiapkan transisi ke ${nextLevel}. Perkuat tim, delegasi tugas operasional, dan mulai training untuk tanggung jawab baru.`;
 
     requirements.push(
-      { label: "Skor Penilaian Diri", value: `${totalSelfScore}/90`, met: true },
-      { label: "Margin Target Kuartal", value: `$${marginCurrentQ.toLocaleString()} / $${targetMargin.toLocaleString()}`, met: true },
-      { label: "Tim Aktif", value: `${totalTeam} orang${kaderisasi.minimum > 0 ? ` (min: ${kaderisasi.minimum})` : ""}`, met: kaderisasi.minimum === 0 || totalTeam >= kaderisasi.minimum },
-      { label: "Karakter Kepemimpinan", value: `${groups.character.toFixed(1)}/5`, met: groups.character >= 3.5 }
+      { label: "Margin Promosi", value: `$${marginCurrentQ.toLocaleString()} / $${promosi!.targetMargin.toLocaleString()}`, met: marginCurrentQ >= promosi!.targetMargin },
+      { label: "Staf Aktif", value: `${totalTeam} / ${promosi!.targetStaff} orang`, met: totalTeam >= promosi!.targetStaff },
+      { label: "Skor 18 Pilar", value: `${totalSelfScore}/90`, met: totalSelfScore >= 65 },
+      { label: "Zona Final", value: zonaFinal, met: zonaFinal !== "merah" }
     );
+
+    if (promosi!.teamRequirements.length > 0) {
+      for (const req of promosi!.teamRequirements) {
+        const count = getTeamCountByRole(data, req.role);
+        requirements.push({
+          label: `Tim ${req.role}`,
+          value: `${count} / min ${req.count}`,
+          met: count >= req.count
+        });
+      }
+    }
+  } else if (!bertahanMet || marginCurrentQ < 0) {
+    if (marginCurrentQ < 0) {
+      recommendation = "Demosi";
+      reason = `Margin NEGATIF ($${marginCurrentQ.toLocaleString()}) menunjukkan kerugian di kuartal ini. ` +
+        `Target bertahan minimal $${bertahan.saveByMargin.toLocaleString()} tidak tercapai. Demosi langsung.`;
+    } else {
+      recommendation = "Demosi";
+      reason = `Margin $${marginCurrentQ.toLocaleString()} tidak memenuhi syarat bertahan. ` +
+        `Save by Margin: $${bertahan.saveByMargin.toLocaleString()} (${saveByMarginMet ? "TERCAPAI" : "TIDAK TERCAPAI"}). `;
+      if (bertahan.saveByStaff) {
+        reason += `Save by Staff: min ${bertahan.saveByStaff.minStaff} staf + ${bertahan.saveByStaff.minTeamCount} tim ${bertahan.saveByStaff.minTeamLevel} + margin $${bertahan.saveByStaff.minNetMargin.toLocaleString()} (${saveByStaffMet ? "TERCAPAI" : "TIDAK TERCAPAI"}).`;
+      }
+    }
+    konsekuensi = "Tidak memenuhi syarat bertahan → demosi langsung sesuai skema ProDem.";
+    nextStep = "Evaluasi menyeluruh, coaching intensif dengan atasan langsung, recovery plan darurat.";
+
+    requirements.push(
+      { label: "Save by Margin", value: `$${marginCurrentQ.toLocaleString()} / $${bertahan.saveByMargin.toLocaleString()}`, met: saveByMarginMet }
+    );
+    if (bertahan.saveByStaff) {
+      requirements.push(
+        { label: "Save by Staff - Staf Aktif", value: `${totalTeam} / ${bertahan.saveByStaff.minStaff}`, met: totalTeam >= bertahan.saveByStaff.minStaff },
+        { label: "Save by Staff - Net Margin", value: `$${marginCurrentQ.toLocaleString()} / $${bertahan.saveByStaff.minNetMargin.toLocaleString()}`, met: marginCurrentQ >= bertahan.saveByStaff.minNetMargin }
+      );
+    }
+  } else if (zonaFinal === "merah" || totalSelfScore < 45) {
+    recommendation = "Pembinaan";
+    reason = `Skor 18 Pilar ${totalSelfScore}/90 berada di zona merah. Wajib coaching intensif kuartal berjalan. ` +
+      `Margin $${marginCurrentQ.toLocaleString()} ${saveByMarginMet ? "memenuhi" : "belum memenuhi"} syarat bertahan.`;
+    konsekuensi = "Pilar kritis terdeteksi → wajib coaching intensif. Jika tidak ada perbaikan → demosi di kuartal berikutnya.";
+    nextStep = "Coaching intensif dengan atasan langsung, monitoring weekly, perbaiki pilar kritis.";
+    strategyType = saveByMarginMet ? "Save by Margin" : "Save by Staff";
+  } else if (bertahanMet && !promosiMet) {
+    recommendation = "Dipertahankan";
+    strategyType = saveByMarginMet ? "Save by Margin" : "Save by Staff";
+    reason = `Syarat bertahan terpenuhi via ${strategyType}. ` +
+      `Sebagai ${julukan.julukan}, ${julukan.deskripsi.toLowerCase()}. `;
+    if (promosi) {
+      reason += `Untuk promosi ke ${promosi.nextLevel}: perlu margin $${promosi.targetMargin.toLocaleString()} dan ${promosi.targetStaff} staf aktif.`;
+    }
+    konsekuensi = "Status aman. Fokus pada peningkatan untuk mencapai syarat promosi.";
+    nextStep = "Implementasi action plan 90 hari, review monthly, penuhi syarat promosi yang belum tercapai.";
+
+    requirements.push(
+      { label: "Syarat Bertahan", value: strategyType, met: true },
+      { label: "Margin Kuartal", value: `$${marginCurrentQ.toLocaleString()} / $${bertahan.saveByMargin.toLocaleString()}`, met: saveByMarginMet }
+    );
+    if (promosi) {
+      requirements.push(
+        { label: "Target Promosi - Margin", value: `$${marginCurrentQ.toLocaleString()} / $${promosi.targetMargin.toLocaleString()}`, met: marginCurrentQ >= promosi.targetMargin },
+        { label: "Target Promosi - Staf", value: `${totalTeam} / ${promosi.targetStaff}`, met: totalTeam >= promosi.targetStaff }
+      );
+    }
   } else {
     recommendation = "Dipertahankan";
     reason = `Performa cukup baik (Skor ${totalSelfScore}/90) sebagai ${julukan.julukan}. ` +
-      `${julukan.deskripsi}. Belum semua syarat promosi terpenuhi, namun fondasi sudah terbangun.`;
-    konsekuensi = "Status aman. Fokus pada peningkatan area yang masih gap untuk promosi periode berikutnya.";
-    nextStep = "Implementasi action plan 90 hari, review monthly, penuhi syarat promosi yang belum tercapai.";
-    strategyType = marginCurrentQ >= targetMargin * 0.8 ? "Save by Margin" : "Save by Staff";
+      `${julukan.deskripsi}. Fondasi sudah terbangun untuk promosi periode berikutnya.`;
+    konsekuensi = "Status aman. Fokus pada peningkatan area yang masih perlu dikembangkan.";
+    nextStep = "Implementasi action plan 90 hari, review monthly, penuhi syarat promosi.";
+    strategyType = saveByMarginMet ? "Save by Margin" : "Save by Staff";
   }
+
+  const bertahanInfo = {
+    saveByMargin: { target: bertahan.saveByMargin, met: saveByMarginMet },
+    saveByStaff: bertahan.saveByStaff ? {
+      ...bertahan.saveByStaff,
+      met: saveByStaffMet
+    } : null,
+    rotasiNote: "Bertahan dengan staf hanya bisa dilakukan 1 kali selang-seling (Q1 Margin, Q2 Staf, Q3 Margin, Q4 Staf)"
+  };
+
+  const promosiInfo = promosi ? {
+    targetMargin: promosi.targetMargin,
+    targetStaff: promosi.targetStaff,
+    teamRequirements: promosi.teamRequirements,
+    nextLevel: promosi.nextLevel,
+    met: promosiMet
+  } : null;
 
   return {
     currentLevel: data.jabatan,
@@ -945,8 +1120,23 @@ function generateProDemRecommendation(
     konsekuensi,
     nextStep,
     strategyType,
-    requirements
+    requirements,
+    bertahanInfo,
+    promosiInfo
   };
+}
+
+function getTeamCountByRole(data: InsertAudit, role: string): number {
+  const r = role.toUpperCase();
+  if (r === "MGM") return data.jumlahBC + data.jumlahSBC;
+  if (r === "BC") return data.jumlahBC;
+  if (r === "SBC" || r === "BC/SBC") return data.jumlahSBC;
+  if (r === "BSM" || r === "BSM/BSM") return data.jumlahBsM;
+  if (r === "SBM") return data.jumlahSBM;
+  if (r === "EM") return data.jumlahEM;
+  if (r === "SEM") return data.jumlahSEM;
+  if (r === "VBM") return data.jumlahVBM;
+  return 0;
 }
 
 function getNextLevel(currentLevel: string): string {

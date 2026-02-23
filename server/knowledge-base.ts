@@ -455,38 +455,33 @@ Remember: Zona bukan label permanen, tapi snapshot saat ini. Dengan action yang 
 
   // ProDem Recommendation
   {
-    keywords: ["prodem", "promosi", "demosi", "promotion", "naik jabatan"],
+    keywords: ["prodem", "promosi", "demosi", "promotion", "naik jabatan", "syarat promosi", "syarat bertahan", "kenaikan jabatan"],
     category: "Career",
-    response: `**Memahami ProDem Recommendation**
+    response: `**Skema ProDem (Promosi-Demosi) Resmi AiSG**
 
-**Promosi:**
-- Pertahankan consistency
-- Document achievements
-- Prepare untuk tanggung jawab lebih besar
-- Mentor potential successors
-- Timeline: 3-6 bulan dengan performance konsisten
+**SYARAT BERTAHAN (per kuartal, pilih salah satu):**
+| Level | Save by Margin | Save by Staff |
+|-------|---------------|---------------|
+| SBC | $10,000 ATAU NA ATAU 3 staf BC/SBC | - |
+| BSM | $75,000 | 5 staf + 1 tim SBC + margin $40,000 |
+| SBM | $150,000 | 15 staf + 2 tim SBC + margin $75,000 |
+| EM | $200,000 | 20 staf + 2 tim SBC + margin $100,000 |
+| SEM | $300,000 | 25 staf + 2 tim BSM + margin $150,000 |
+| VBM | $500,000 | 35 staf + 2 tim SBM + margin $250,000 |
 
-**Pertahankan:**
-- Stabilkan performance
-- Strengthen weak areas
-- Build track record
-- Show improvement trend
-- Timeline: Review quarterly
+**PENTING:** Bertahan dengan staf hanya bisa 1x selang-seling (Q1 Margin, Q2 Staf, Q3 Margin, Q4 Staf).
 
-**Pembinaan:**
-- Terima feedback dengan positive mindset
-- Focus pada action plan
-- Daily improvement
-- Seek mentorship
-- Timeline: 90 hari untuk turnaround
+**SYARAT PROMOSI (semua harus terpenuhi):**
+| Level | Target Margin | Target Staf/Tim |
+|-------|--------------|----------------|
+| BC→SBC | NA $10,000 | 3 staf MGM under langsung |
+| SBC→BSM | $125,000 | 10 staf + 2 tim SBC |
+| BSM→SBM | $200,000 | 20 staf + 3 tim SBC |
+| SBM→EM | $300,000 | 30 staf + 1 tim BSM + 2 tim SBC |
+| EM→SEM | $400,000 | 40 staf + 2 tim BSM + 1 tim SBC |
+| SEM→VBM | $500,000 | 50 staf + 2 tim SBM + 1 tim BSM |
 
-**Demosi/Mutasi:**
-- Evaluasi apakah fit dengan role
-- Consider career pivot
-- Fresh start opportunity
-- Learn dari experience
-
-Career bukan sprint, tapi marathon. Every setback is setup for comeback!`
+**Catatan:** Semua hitungan staf/jalur adalah under langsung & aktif. Tidak memenuhi syarat bertahan → demosi langsung.`
   },
 
   // Default responses

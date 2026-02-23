@@ -9,8 +9,8 @@ AiSG (Audit Intelligence System Growth) is a corporate enterprise performance au
 - **5 Dimension Groups**: Pillars organized into Selling Skills (P1-P3), Team Building (P4,P7,P8,P10), Performance (P5,P6,P9), Character & Leadership (P11-P14), Growth & Innovation (P15-P18).
 - **15+ Varied Julukan**: Dynamic julukan based on pillar group patterns (The Commander, Empire Builder, Trusted Advisor, Closer, Architect, etc.) instead of just 4 fixed profiles.
 - **SWOT/ProDem/Magic Section**: Now character & mindset-driven narratives, not numeric gap calculations.
-- **Target Margin Fix**: Targets are per-month (×3 for quarterly). Target NA = monthly margin / 20k.
-- **Kaderisasi Standards**: SBC min 3 BC, BSM min 2 SBC, SBM min 2 BSM, EM min 2 SBM, SEM min 2 EM, VBM min 2 SEM.
+- **ProDem Scheme Overhaul**: Full implementation of official ProDem scheme with accurate quarterly targets: BSM=$75k, SBM=$150k, EM=$200k, SEM=$300k, VBM=$500k. Save by Margin and Save by Staff dual-path bertahan with team-level requirements. Promosi requires margin + staff + team structure (e.g., BSM→SBM needs $200k + 20 staf + 3 SBC). Rotation rule: Save by Staff hanya 1x selang-seling.
+- **Kaderisasi Standards**: BC/SBC min 3 MGM, BSM min 1 SBC, SBM min 2 SBC, EM min 2 SBC, SEM min 2 BSM, VBM min 2 SBM.
 
 ## User Preferences
 
