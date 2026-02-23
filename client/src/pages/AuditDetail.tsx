@@ -27,6 +27,22 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChatPanel } from "@/components/ChatPanel";
 
+function getLiveQuarterlyTarget(jabatan: string): number {
+  if (jabatan.includes("VBM")) return 500000;
+  if (jabatan.includes("SEM")) return 300000;
+  if (jabatan.includes("SBM")) return 150000;
+  if (jabatan.includes("BSM") || jabatan.includes("BsM")) return 75000;
+  if (jabatan.includes("EM")) return 200000;
+  if (jabatan.includes("SBC")) return 10000;
+  if (jabatan.includes("BC")) return 10000;
+  return 10000;
+}
+
+function getLiveTargetNA(jabatan: string): number {
+  if (jabatan.includes("SBC") || jabatan.includes("BC")) return 1;
+  return Math.max(1, Math.ceil(getLiveQuarterlyTarget(jabatan) / 20000));
+}
+
 export default function AuditDetail() {
   const [, params] = useRoute("/audit/:id");
   const [, setLocation] = useLocation();
@@ -210,7 +226,21 @@ export default function AuditDetail() {
               <Clock className="w-5 h-5 text-primary" />
               <h2 className="text-xl font-semibold">Progress Kuartal</h2>
             </div>
-            {report?.progressKuartal && (
+            {report?.progressKuartal && (() => {
+              const liveTarget = getLiveQuarterlyTarget(audit.jabatan);
+              const liveTargetNA = getLiveTargetNA(audit.jabatan);
+              const realisasi = report.progressKuartal.realisasiMargin;
+              const realisasiNA = report.progressKuartal.realisasiNA;
+              const pctMargin = liveTarget > 0 ? Math.round((realisasi / liveTarget) * 100) : 0;
+              const pctNA = liveTargetNA > 0 ? Math.round((realisasiNA / liveTargetNA) * 100) : 0;
+              const catatan = realisasi < 0
+                ? "KRITIS: Margin negatif! Perlu recovery plan darurat."
+                : realisasi >= liveTarget
+                  ? "Target tercapai! Pertahankan momentum."
+                  : realisasi >= liveTarget * 0.8
+                    ? "Hampir mencapai target. Sedikit lagi!"
+                    : "Di bawah target, perlu strategi boost yang lebih agresif.";
+              return (
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between mb-2">
@@ -221,26 +251,27 @@ export default function AuditDetail() {
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="text-sm">Margin Target</span>
-                    <span className={`text-sm font-semibold ${report.progressKuartal.realisasiMargin < 0 ? 'text-red-500' : ''}`}>${report.progressKuartal.realisasiMargin.toLocaleString()} / ${report.progressKuartal.targetMargin.toLocaleString()}</span>
+                    <span className={`text-sm font-semibold ${realisasi < 0 ? 'text-red-500' : ''}`}>${realisasi.toLocaleString()} / ${liveTarget.toLocaleString()}</span>
                   </div>
-                  <Progress value={Math.max(0, Math.min(report.progressKuartal.percentageMargin, 100))} className={`h-2 ${report.progressKuartal.realisasiMargin < 0 ? '[&>div]:bg-red-500' : ''}`} />
-                  <p className={`text-xs mt-1 ${report.progressKuartal.realisasiMargin < 0 ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
-                    {report.progressKuartal.realisasiMargin < 0 ? `MINUS ${Math.abs(report.progressKuartal.percentageMargin)}%` : `${report.progressKuartal.percentageMargin}% tercapai`}
+                  <Progress value={Math.max(0, Math.min(pctMargin, 100))} className={`h-2 ${realisasi < 0 ? '[&>div]:bg-red-500' : ''}`} />
+                  <p className={`text-xs mt-1 ${realisasi < 0 ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
+                    {realisasi < 0 ? `MINUS ${Math.abs(pctMargin)}%` : `${pctMargin}% tercapai`}
                   </p>
                 </div>
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="text-sm">NA Target</span>
-                    <span className="text-sm font-semibold">{report.progressKuartal.realisasiNA} / {report.progressKuartal.targetNA}</span>
+                    <span className="text-sm font-semibold">{realisasiNA} / {liveTargetNA}</span>
                   </div>
-                  <Progress value={Math.min(report.progressKuartal.percentageNA, 100)} className="h-2" />
-                  <p className="text-xs text-muted-foreground mt-1">{report.progressKuartal.percentageNA}% tercapai</p>
+                  <Progress value={Math.min(pctNA, 100)} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-1">{pctNA}% tercapai</p>
                 </div>
                 <div className="pt-2 border-t">
-                  <p className="text-sm italic">{report.progressKuartal.catatan}</p>
+                  <p className="text-sm italic">{catatan}</p>
                 </div>
               </div>
-            )}
+              );
+            })()}
           </Card>
         </div>
 
@@ -589,15 +620,72 @@ export default function AuditDetail() {
                       <div className="space-y-2">
                         {prodem.requirements.map((req: any, idx: number) => (
                           <div key={idx} className="flex items-center justify-between p-3 bg-card/50 rounded">
-                            <span className="font-medium">{req.label}</span>
+                            <span className="font-medium text-xs sm:text-sm">{req.label}</span>
                             <div className="flex items-center gap-2">
-                              <span className="text-sm">{req.value}</span>
+                              <span className="text-xs sm:text-sm">{req.value}</span>
                               {req.met ? (
                                 <CheckCircle2 className="w-5 h-5 text-green-500" />
                               ) : (
                                 <XCircle className="w-5 h-5 text-red-500" />
                               )}
                             </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {prodem.bertahanInfo && (
+                    <div className="p-4 border rounded-xl bg-card/50">
+                      <h3 className="font-semibold mb-3 text-sm sm:text-base">Syarat Bertahan (Kuartal Ini)</h3>
+                      <div className="space-y-2 text-xs sm:text-sm">
+                        <div className="flex items-center justify-between p-2 rounded bg-background/50">
+                          <span>Save by Margin</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono">${prodem.bertahanInfo.saveByMargin?.target?.toLocaleString()}</span>
+                            {prodem.bertahanInfo.saveByMargin?.met ? (
+                              <CheckCircle2 className="w-4 h-4 text-green-500" />
+                            ) : (
+                              <XCircle className="w-4 h-4 text-red-500" />
+                            )}
+                          </div>
+                        </div>
+                        {prodem.bertahanInfo.saveByStaff && (
+                          <div className="flex items-center justify-between p-2 rounded bg-background/50">
+                            <span>Save by Staff</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs">{prodem.bertahanInfo.saveByStaff.minStaff} staf + {prodem.bertahanInfo.saveByStaff.minTeamCount} {prodem.bertahanInfo.saveByStaff.minTeamLevel} + ${prodem.bertahanInfo.saveByStaff.minNetMargin?.toLocaleString()}</span>
+                              {prodem.bertahanInfo.saveByStaff.met ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                              ) : (
+                                <XCircle className="w-4 h-4 text-red-500" />
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {prodem.bertahanInfo.rotasiNote && (
+                          <p className="text-xs text-muted-foreground italic mt-2">{prodem.bertahanInfo.rotasiNote}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {prodem.promosiInfo && (
+                    <div className="p-4 border rounded-xl bg-card/50">
+                      <h3 className="font-semibold mb-3 text-sm sm:text-base">Syarat Promosi → {prodem.promosiInfo.nextLevel}</h3>
+                      <div className="space-y-2 text-xs sm:text-sm">
+                        <div className="flex items-center justify-between p-2 rounded bg-background/50">
+                          <span>Margin</span>
+                          <span className="font-mono">${prodem.promosiInfo.targetMargin?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-2 rounded bg-background/50">
+                          <span>Staf Aktif</span>
+                          <span className="font-mono">{prodem.promosiInfo.targetStaff} orang</span>
+                        </div>
+                        {prodem.promosiInfo.teamRequirements?.map((req: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between p-2 rounded bg-background/50">
+                            <span>Tim {req.role}</span>
+                            <span className="font-mono">min {req.count}</span>
                           </div>
                         ))}
                       </div>
