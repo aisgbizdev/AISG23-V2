@@ -13,23 +13,9 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-const connString = process.env.DATABASE_URL;
-
-// Optional: if PGHOSTADDR is provided, pin to that IPv4 to avoid round-robin IPs that may be blocked
-let finalConn = connString;
-if (process.env.PGHOSTADDR) {
-  try {
-    const url = new URL(connString);
-    url.hostname = process.env.PGHOSTADDR;
-    finalConn = url.toString();
-  } catch (_err) {
-    // If parsing fails, fallback to original connection string
-    finalConn = connString;
-  }
-}
-
 const pool = new Pool({
-  connectionString: finalConn,
+  connectionString: process.env.DATABASE_URL,
+  hostaddr: process.env.PGHOSTADDR, // keep host (for SNI) but pin TCP to this IP if provided
   ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 5000,
 });
