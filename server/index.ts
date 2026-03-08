@@ -7,6 +7,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { ensureSuperadminExists } from "./auth";
 
 const app = express();
+const isProduction = process.env.NODE_ENV === "production";
 
 // Trust proxy (Replit uses proxy)
 app.set('trust proxy', 1);
@@ -39,10 +40,10 @@ app.use(session({
   saveUninitialized: false,
   proxy: true, // Trust proxy for cookie setting
   cookie: {
-    secure: true,
+    secure: isProduction,
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: "none" as const,
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
   },
 }));

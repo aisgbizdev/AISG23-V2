@@ -47,7 +47,9 @@ export default function AdminDashboard() {
   const { data: users, isLoading } = useQuery<Array<Omit<User, "password">>>({
     queryKey: ["users"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/users");
+      const res = await fetch("/api/admin/users", {
+        credentials: "include",
+      });
       if (!res.ok) throw new Error("Failed to fetch users");
       return res.json();
     },
@@ -57,7 +59,9 @@ export default function AdminDashboard() {
   const { data: inactiveUsers = [] } = useQuery<Array<Omit<User, "password">>>({
     queryKey: ["inactiveUsers"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/users/inactive");
+      const res = await fetch("/api/admin/users/inactive", {
+        credentials: "include",
+      });
       if (!res.ok) throw new Error("Failed to fetch inactive users");
       return res.json();
     },
@@ -69,6 +73,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/auth/create-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(userData),
       });
       if (!res.ok) {
@@ -106,6 +111,7 @@ export default function AdminDashboard() {
     mutationFn: async (userId: string) => {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "DELETE",
+        credentials: "include",
       });
       if (!res.ok) {
         const error = await res.json();

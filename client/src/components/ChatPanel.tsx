@@ -25,7 +25,9 @@ export function ChatPanel({ auditId, auditName }: ChatPanelProps) {
   const { data: history = [], isLoading } = useQuery<ChatMessage[]>({
     queryKey: ["/api/chat", auditId],
     queryFn: async () => {
-      const res = await fetch(`/api/chat/${auditId}`);
+      const res = await fetch(`/api/chat/${auditId}`, {
+        credentials: "include",
+      });
       if (!res.ok) throw new Error("Failed to load chat");
       return res.json();
     }
