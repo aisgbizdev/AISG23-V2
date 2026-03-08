@@ -7,10 +7,13 @@ import { setupVite, serveStatic, log } from "./vite";
 import { ensureSuperadminExists } from "./auth";
 
 const app = express();
-const isProduction = process.env.NODE_ENV === "production";
+const trustProxyValue = process.env.TRUST_PROXY ?? "1";
+const parsedTrustProxy = Number.parseInt(trustProxyValue, 10);
+const trustProxy = Number.isNaN(parsedTrustProxy) ? 1 : parsedTrustProxy;
+const useSecureCookie = process.env.SESSION_COOKIE_SECURE === "true";
 
 // Trust proxy (Replit uses proxy)
-app.set('trust proxy', 1);
+app.set("trust proxy", trustProxy);
 
 // PostgreSQL session store
 const PgSession = connectPgSimple(session);
@@ -38,12 +41,12 @@ app.use(session({
   secret: process.env.SESSION_SECRET || "aisg-secret-key-change-in-production",
   resave: false,
   saveUninitialized: false,
-  proxy: true, // Trust proxy for cookie setting
+  proxy: true, // Express-session honors X-Forwarded-* when trust proxy is enabled
   cookie: {
-    secure: isProduction,
+    secure: useSecureCookie,
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: useSecureCookie ? "none" : "lax",
     path: "/",
   },
 }));
