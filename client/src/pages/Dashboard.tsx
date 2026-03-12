@@ -88,11 +88,16 @@ export default function Dashboard() {
     }
   };
 
-  const filteredAudits = audits.filter(audit =>
-    audit.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    audit.jabatan.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    audit.cabang.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Apply client-side search to the loaded audits
+  const filteredAudits = audits.filter((audit) => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    return (
+      audit.nama.toLowerCase().includes(query) ||
+      audit.jabatan.toLowerCase().includes(query) ||
+      audit.cabang.toLowerCase().includes(query)
+    );
+  });
 
   // Check if user is admin (can see global stats)
   const isAdmin = user?.role === "admin" || user?.role === "full_admin";
@@ -237,14 +242,14 @@ export default function Dashboard() {
                   <div key={i} className="h-64 bg-card rounded-lg animate-pulse" />
                 ))}
               </div>
-            ) : audits.length === 0 ? (
+            ) : filteredAudits.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <p className="text-lg mb-2">Belum ada audit</p>
                 <p className="text-sm">Klik "Audit Baru" untuk memulai audit pertama Anda</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {audits.slice(0, 3).map((audit) => (
+                {filteredAudits.slice(0, 3).map((audit) => (
                   <div
                     key={audit.id}
                     className="bg-card rounded-xl border border-border p-6 space-y-4 hover:shadow-lg transition-shadow cursor-pointer"
