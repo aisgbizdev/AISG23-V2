@@ -101,6 +101,7 @@ export default function Dashboard() {
 
   // Check if user is admin (can see global stats)
   const isAdmin = user?.role === "admin" || user?.role === "full_admin";
+  const goTo = (path: string) => () => setLocation(path);
 
   // For regular users: show personal stats (from their own audits)
   // For admins: show global stats (from summary endpoint)
@@ -192,24 +193,28 @@ export default function Dashboard() {
             title="Total Audit"
             value={totalAudits}
             icon={BarChart3}
+            onClick={isAdmin ? goTo("/admin/audit-log") : undefined}
             data-testid="stat-total-audits"
           />
           <StatCard
             title="Pengguna Unik"
             value={uniqueUsers}
             icon={Users}
+            onClick={isAdmin ? goTo("/admin") : undefined}
             data-testid="stat-active-users"
           />
           <StatCard
             title="Zona Hijau"
             value={`${zonaHijauPercentage}%`}
             icon={TrendingUp}
+            onClick={isAdmin ? goTo("/admin/audit-log") : undefined}
             data-testid="stat-avg-score"
           />
           <StatCard
             title="Pending Review"
             value={pendingReviews}
             icon={Clock}
+            onClick={isAdmin ? goTo("/admin/audit-log") : undefined}
             data-testid="stat-pending-review"
           />
         </div>

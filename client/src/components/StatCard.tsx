@@ -9,12 +9,31 @@ interface StatCardProps {
     value: number;
     isPositive: boolean;
   };
+  onClick?: () => void;
   "data-testid"?: string;
 }
 
-export default function StatCard({ title, value, icon: Icon, trend, "data-testid": testId }: StatCardProps) {
+export default function StatCard({ title, value, icon: Icon, trend, onClick, "data-testid": testId }: StatCardProps) {
+  const isClickable = typeof onClick === "function";
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isClickable) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick?.();
+    }
+  };
+
   return (
-    <Card className="p-4 sm:p-6 hover-elevate transition-all duration-300 hover:shadow-lg" data-testid={testId}>
+    <Card
+      className={`p-4 sm:p-6 hover-elevate transition-all duration-300 hover:shadow-lg ${isClickable ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-primary" : ""}`}
+      data-testid={testId}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+      aria-pressed={undefined}
+    >
       <div className="flex items-start justify-between gap-2 sm:gap-4">
         <div className="flex-1 min-w-0">
           <p className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2">{title}</p>
